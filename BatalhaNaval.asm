@@ -6,7 +6,7 @@
 
 	.data
 
-navios:	.asciz	"3\n1 9 1 1\n0 8 2 2\n0 1 6 4"
+navios:	.asciz	"3\n1 5 1 1\n0 8 2 2\n0 1 6 4"
 
 matriz_navios: 	.space 	400			# 10 x 10 x 4 (integer size)
 
@@ -15,8 +15,6 @@ new_line:	.string "\n"
 space:		.string " "
 
 error_message:  .string "This boat is invalid\n"
-
-here:		.string "Here\n"
 
 	.text
 
@@ -52,7 +50,7 @@ insere_embarcacoes:
 	addi t1, t1, -48			# subtrai 48 do valor de t1 (convertendo o numero em string para inteiro)
 	
 loop_insere_embarcacoes:
-	beq t1, zero, fim_insere_embarcacoes                 # desvia se já leu todos os navios
+	ble t1, zero, fim_insere_embarcacoes                 # desvia se já leu todos os navios
 	
 insere_um_navio:
 
@@ -113,22 +111,22 @@ fim_insere_embarcacoes_erro:		# imprime mensagem de erro caso um dos navios não
 #########################################################
 checa_valores:
 	addi s2, zero, 9			# S2 -> 9 (número máximo que uma linha ou coluna pode ter)
+	addi t6, zero, 1			# t6 -> 1 (opção vertical)
 checa_posicao:
-	bgt t4, s2, erro_encontrado		# identifica erro se a linha for maior que 9
-	bgt t5, s2, erro_encontrado		# identifica erro se a coluna for maior que 9
-
 	blt t4, zero, erro_encontrado		# identifica erro se a linha for menor que 0
 	blt t5, zero, erro_encontrado		# identifica erro se a coluna for menor que 0
 	
+	bgt t4, s2, erro_encontrado		# identifica erro se a linha for maior que 9
+	bgt t5, s2, erro_encontrado		# identifica erro se a coluna for maior que 9
+	
 checa_primeiro_digito:				# checa o primeiro digito -> deve ser igual a 0 ou 1
-	addi t6, zero, 1			# t6 -> 1 (opção vertical)
 	bgt t2, t6, erro_encontrado			# identifica erro se a posição for maior que 1
+	addi t6, zero, 10			# t6 -> 10 (quantidade de linhas e colunas)
 	blt t2, zero, erro_encontrado		# identifica erro se a posição for menor que 0
 	
 checa_tamanho:
-	addi t6, zero, 10			# t6 -> 10 (quantidade de linhas e colunas)
-	bgt t3, t6, erro_encontrado			# identifica erro se o tamanho do barco for maior que 10
 	blt t3, zero, erro_encontrado		# identifica erro se o tamanho do barco for menor que 0
+	bgt t3, t6, erro_encontrado			# identifica erro se o tamanho do barco for maior que 10
 	
 checa_horizontal:
 	bne t2, zero, checa_vertical		# desvia para checks_vertical se o barco for vertical
@@ -156,13 +154,14 @@ checa_sobreposicao:
 loop_checa_sobreposicao:
 	bge zero, s6, fim_checa_valores	# desvia para checks_values_ends se já passou por todas posições que o barco ocupará
 	
-	la a1, matriz_navios			# a1 -> posição inicial da matriz
+	addi s2, zero, 10			# QTD_colunas
 	
-	addi s2, zero, 10
-	mul s3, s8, s2
-	addi s2, zero, 4
-	add s3, s3, s7
-	mul s2, s3, s2				# s2 -> (L * QTD_colunas + C) * 4 -> deslocamento para posição
+	la a1, matriz_navios			# a1 -> posição inicial da matriz
+
+	mul s3, s8, s2				# L * QTD_colunas
+	addi s5, zero, 4			# s5 -> 4
+	add s3, s3, s7				# L * QTD_colunas + C
+	mul s2, s3, s5				# s2 -> (L * QTD_colunas + C) * 4 -> deslocamento para posição
 	
 	add a1, a1, s2				# a1 -> é delocado s2 vezes 
 
@@ -203,13 +202,14 @@ coloca_valores:
 loop_coloca_valores:
 	bge zero, t3, fim_coloca_valores		# percorre todas as posições do navio até tamanho ser menor ou igual a 0
 	
-	la a1, matriz_navios
+	addi s2, zero, 10		# QTD_colunas
 	
-	addi s2, zero, 10
-	mul s3, t4, s2
-	addi s2, zero, 4
-	add s3, s3, t5
-	mul s2, s3, s2			# s2 -> (L * QTD_colunas + C) * 4 -> deslocamento para posição
+	la a1, matriz_navios
+
+	mul s3, t4, s2			# L * QTD_colunas
+	addi s5, zero, 4		# s5 -> 4
+	add s3, s3, t5			# L * QTD_colunas + C
+	mul s2, s3, s5			# s2 -> (L * QTD_colunas + C) * 4 -> deslocamento para posição
 	
 	add a1, a1, s2			# a1 -> é delocado s2 vezes
 	
