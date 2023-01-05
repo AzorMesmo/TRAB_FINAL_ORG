@@ -2,7 +2,7 @@
 # Natalia Banhara - 2011100004
 
 # INFO
-# ship_list: [numero de navios]\n[0 - horizontal / 1 - vertical] [comprimento do navio] [linha inicial] [coluna inicial]\n ...
+# matriz_navios: [numero de navios]\n[0 - horizontal / 1 - vertical] [comprimento do navio] [linha inicial] [coluna inicial]\n ...
 
 	.data
 
@@ -277,7 +277,7 @@ p_end:
 	ret # retorna
 
 #########################################################
-# imprime_matriz_navios
+# reset
 # retorno: coloca em a0 a posição inicial da string navios e em a1 a posição inicial da matriz_navios
 #########################################################
 reset:
