@@ -16,38 +16,109 @@ navios:	.asciz	"3\n1 5 1 1\n0 8 2 2\n0 1 6 4"
 
 matriz_navios: 	.space 	400			# 10 x 10 x 4 (tamanho de um inteiro)
 
-new_line:	.string "\n"
+matriz_jogo:	.space	400			# incognita -> ? / agua -> O / navio -> X / ultima jogada -> +
 
-space:		.string " "
+quebra_linha:	.string "\n"
 
-error_message:  .string "Invalid Boats!\n"
+espaco:		.string " "
+
+erro_navios:	.string "Invalid Boats!\n"
+
+ignoto:		.string "?"
+
+agua:		.string "O"
+
+navio:		.string "X"
+
+jogada:		.string "+"
+
+input:		.string "-> "
+
+bem_vindo:	.string "Bem Vindo a Batalha Naval em Assembly!\n\n"
+
+obrigado:	.string "\nObrigado por Jogar!\n"
+
+menu_acoes:	.string "1 - Jogar\n2 - Selecionar Navios\n0 - Sair\n\n"
+
+acao_invalida:	.string "Opção Inválida!\n\n"
+
+aaa:		.string "\nEM DESENVOLVIMENTO!\n"
 
 	.text
 
-main:
-	
-	la a0, navios				# carrega o endereco de navios em a0
-	la a1, matriz_navios			# carrega o endereco de matriz_navios em a1
+menu:
 	
 	addi s4, zero, 0			# s4 possui o numero que cada navio vai ter na matriz
-	
-	jal insere_embarcacoes			# chama a funcao insere_embarcacoes
+	addi s1, zero, 1			# s1 possui o numero da primeira opcao do menu
+	addi s2, zero, 2			# s2 possui o numero da segunda opcao do menu
 	
 	jal reset				# chama a funcao reset
 	
-	jal imprime_interface_navios		# chama a funcao imprime_interface_navios
+	la a0, bem_vindo			# carrega a string {bem_vindo} em a0
+	li a7, 4				# carrega o imediato 4 (print string) em a7
+	ecall					# faz a chamada de sistema
 
-main_end:	
+loop_menu:
 
-	nop					# no operation
-	li   a7, 10				# carrega o imediato 10 (print string) em a7 (registrador de system calls)
+	la a0, menu_acoes			# carrega a string {menu_acoes} em a0
+	li a7, 4				# carrega o imediato 4 (print string) em a7
+	ecall					# faz a chamada de sistema
+	
+	la a0, input				# carrega a string {input} em a0
+	li a7, 4				# carrega o imediato 4 (print string) em a7
+	ecall					# faz a chamada de sistema
+	
+	li a7, 5				# carrega o imediato 5 (read int) em a7
+	ecall					# faz a chamada de sistema
+	
+	beq a0, s1, menu_jogar
+	beq a0, s2, menu_escolher
+	beq a0, zero, fim_menu
+	
+	la a0, acao_invalida			# carrega a string {acao_invalida} em a0
+	li a7, 4				# carrega o imediato 4 (print string) em a7
+	ecall					# faz a chamada de sistema
+	
+	j loop_menu
+
+menu_jogar:
+
+	la a0, quebra_linha			# coloca o {quebra_linha} em a0
+	li a7, 4				# coloca o valor 4 em a7 (4 = imprimir string)
+	ecall					# faz a chamada de sistema (usando sempre o valor que esta em a7)
+
+	#jal insere_embarcacoes			# chama a funcao insere_embarcacoes
+	
+	#jal reset				# chama a funcao reset
+	
+	#jal imprime_matriz_navios		# chama a funcao imprime_matriz_navios
+	
+	jal completa_jogo			# chama a funcao completa_jogo
+	
+	jal reset				# chama a funcao reset
+	
+	jal imprime_matriz_jogo			# chama a funcao imprime_matriz_jogo
+
+menu_escolher:
+
+	la a0, aaa				# carrega a string {menu_acoes} em a0
+	li a7, 4				# carrega o imediato 4 (print string) em a7
+	ecall					# faz a chamada de sistema
+
+fim_menu:	
+
+	la a0, obrigado				# carrega a string {menu_acoes} em a0
+	li a7, 4				# carrega o imediato 4 (print string) em a7
+	ecall					# faz a chamada de sistema
+
+	li a7, 10				# carrega o imediato 10 (exit program) em a7
 	ecall					# faz a chamada de sistema
 
  ###########################################################
  # funcao: insere_embarcacoes				   #
- # argumentos: a0 - endereco inicial da string navios	   #
- #             a1 - endereco inicial da matriz de navios   #
- # retorno: a1 - matriz preenchida com os navios	   #
+ # argumentos: a0 -> endereco inicial da string navios	   #
+ #             a1 -> endereco inicial da matriz de navios  #
+ # retorno: a1 -> matriz preenchida com os navios	   #
  # comentario: le os navios a serem inseridos, checando    #
  # 	      caso sejam validos e os inserindo na matrix  #
  ###########################################################
@@ -104,13 +175,38 @@ fim_insere_embarcacoes:
 	
 fim_insere_embarcacoes_erro:			# imprime mensagem de erro caso um dos navios nao seja valido e retorna
 			
-	la a0, error_message			
+	la a0, erro_navios			
 	li a7, 4
 	ecall
-	ret
+	ret					# retorna
 	
+ ###########################################################
+ # funcao: completa_jogo				   #
+ # argumentos: a3 -> endereço inicial da matriz de jogo	   #
+ # comentario: preenche a matriz de jogo, a ser exibida    #
+ # 	       ao usuário, com seu estado não revelado     #
+ ###########################################################
+	
+completa_jogo:
 
+	addi t0, zero, 100			# adiciona 100 em t0 (contador de elementos na matriz)
+	lb t1, ignoto
+	
+loop_completa_jogo:
 
+	beq t0, zero, fim_completa_jogo		# desvia se todos os valores foram inseridos (t0 = 0)
+	
+	sb t1, 0(a3)
+	
+	addi a3, a3, 4
+	addi t0, t0, -1
+	
+	j loop_completa_jogo
+	
+fim_completa_jogo:
+
+	ret					# retorna
+	
  ########################################################
  # funcao: checa_valores				#
  # argumentos: a1 -> matriz_navios		        #
@@ -118,8 +214,8 @@ fim_insere_embarcacoes_erro:			# imprime mensagem de erro caso um dos navios nao
  #	       t3 -> tamanho do barco			#
  # 	       t4 -> linha inicial do barco		#
  # 	       t5 -> coluna inicial do barco		#
- # retorno: a2 = 1 (se for valido)		        #
- #	    a2 = 0 (se nao for valido)		        #
+ # retorno: a2 -> 1 (se for valido)		        #
+ #	    a2 -> 0 (se nao for valido)		        #
  # comentario: checa se os valores do barco sao validos #
  ########################################################
 
@@ -233,106 +329,150 @@ erro_encontrado:
 
 coloca_valores:
 			
-	addi s4, s4, 1 			# incrementa o numero que representa o navio na matrix
+	addi s4, s4, 1 				# incrementa o numero que representa o navio na matrix
 	
 loop_coloca_valores:
 
-	bge zero, t3, fim_coloca_valores # percorre todas as posicoes do navio ate o tamanho ser menor ou igual a 0
+	bge zero, t3, fim_coloca_valores	# percorre todas as posicoes do navio ate o tamanho ser menor ou igual a 0
 	
-	addi s2, zero, 10		# QTD_colunas
-	addi s5, zero, 4		# s5 -> 4
-	la a1, matriz_navios		# a1 -> endereco inicial da matriz
+	addi s2, zero, 10			# QTD_colunas
+	addi s5, zero, 4			# s5 -> 4
+	la a1, matriz_navios			# a1 -> endereco inicial da matriz
 
-	mul s3, t4, s2			# L * QTD_colunas
-	add s3, s3, t5			# L * QTD_colunas + C
-	mul s2, s3, s5			# s2 -> (L * QTD_colunas + C) * 4 -> deslocamento para posicao
+	mul s3, t4, s2				# L * QTD_colunas
+	add s3, s3, t5				# L * QTD_colunas + C
+	mul s2, s3, s5				# s2 -> (L * QTD_colunas + C) * 4 -> deslocamento para posicao
 	
-	add a1, a1, s2			# desloca s2 vezes a1
+	add a1, a1, s2				# desloca s2 vezes a1
 	
-	sb s4, 0(a1)			# a posicao de a1 recebe o valor que identifica o barco
+	sb s4, 0(a1)				# a posicao de a1 recebe o valor que identifica o barco
 	
-	bne t2, zero, coloca_valores_vertical # desvia para coloca_valores_vertical se o barco for vertical
+	bne t2, zero, coloca_valores_vertical	# desvia para coloca_valores_vertical se o barco for vertical
 	
 coloca_valores_horizontal:
 
-	addi t5, t5, 1			# t5 + 1 -> aumenta coluna inicial
+	addi t5, t5, 1				# t5 + 1 -> aumenta coluna inicial
 	
-	j coloca_valores_decrementa	# desvia para coloca_valores_decrementa
+	j coloca_valores_decrementa		# desvia para coloca_valores_decrementa
 	
 coloca_valores_vertical:
 
-	addi t4, t4, 1			# t4 + 1 -> aumenta linha inicial
+	addi t4, t4, 1				# t4 + 1 -> aumenta linha inicial
 	
 coloca_valores_decrementa:
 
-	addi t3, t3, -1			# decrementa o tamanho do barco em 1 para continuar preenchendo na matriz
+	addi t3, t3, -1				# decrementa o tamanho do barco em 1 para continuar preenchendo na matriz
 	
-	j loop_coloca_valores		# desvia para loop_coloca_valores
+	j loop_coloca_valores			# desvia para loop_coloca_valores
 	
 fim_coloca_valores:
 
-	jr s9				# desvia para o endereço em s9 -> endereço de retorno
+	jr s9					# desvia para o endereço em s9 -> endereço de retorno
 
- ###################################
- # imprime_matriz_navios	   #
- # argumentos: a1 -> matriz_navios #
- #	      a0 -> navios	   #
- # comentario: imprime a matriz	   #
- ###################################
+ ##########################################
+ # funcao: imprime_matriz_navios   	  #
+ # argumentos: a1 -> matriz_navios	  #
+ #	       a0 -> navios	   	  #
+ # comentario: imprime a matriz de navios #
+ ##########################################
 
-imprime_interface_navios:
+imprime_matriz_navios:
 	
-	addi a4, a1, 0			# coloca o valor de a1 (endereco incial da matriz) em a4
-	addi t0, zero, 100		# contador do tamanho da matriz (t0 recebe o numero de elementos da matriz)
-	addi t1, zero, 10		# contador das quebras de linha (t1 recebe o tamanho da linha da matriz)
+	addi t0, zero, 100			# contador do tamanho da matriz (t0 recebe o numero de elementos da matriz)
+	addi t1, zero, 10			# contador das quebras de linha (t1 recebe o tamanho da linha da matriz)
 
 imprime_loop:
 
-	beq t1, zero, imprime_nova_linha # desvia se t1 (contador das quebras de linha) for igual a 0
-	bge zero, t0, fim_imprime	# desvia se t0 (contador do tamanho da matriz) for menor ou igual a 0 ("maior que" invertido)
+	beq t1, zero, imprime_nova_linha	# desvia se t1 (contador das quebras de linha) for igual a 0
+	bge zero, t0, fim_imprime		# desvia se t0 (contador do tamanho da matriz) for menor ou igual a 0 ("maior que" invertido)
 	
-	lb a0, 0(a4)			# coloca em a0 o conteudo de a4 (o primeiro elemento da lista) 
-	li a7, 1			# coloca o valor 1 em a7 (1 = imprimir inteiro)
-	ecall				# faz a chamada de sistema (usando sempre o valor que esta em a7)
+	lb a0, 0(a3)				# coloca em a0 o conteudo de a3 (o primeiro elemento da lista) 
+	li a7, 1				# coloca o valor 1 em a7 (1 = imprimir inteiro)
+	ecall					# faz a chamada de sistema (usando sempre o valor que esta em a7)
 	
-	la a0, space			# coloca o {str_space} em a0
-	li a7, 4			# coloca o valor 4 em a7 (4 = imprimir string)
-	ecall				# faz a chamada de sistema (usando sempre o valor que esta em a7)
-	ecall				# faz a chamada de sistema (usando sempre o valor que esta em a7)
+	la a0, espaco				# coloca o {str_espaco} em a0
+	li a7, 4				# coloca o valor 4 em a7 (4 = imprimir string)
+	ecall					# faz a chamada de sistema (usando sempre o valor que esta em a7)
+	ecall					# faz a chamada de sistema (usando sempre o valor que esta em a7)
 	
-	addi a4, a4, 4			# vai para o proximo valor de a4 (adicionando 4)
+	addi a4, a4, 4				# vai para o proximo valor de a4 (adicionando 4)
 	
-	addi t0, t0, -1			# decrementa o contador do tamanho da matriz
-	addi t1, t1, -1			# decrementa o contador das quebras de linha
+	addi t0, t0, -1				# decrementa o contador do tamanho da matriz
+	addi t1, t1, -1				# decrementa o contador das quebras de linha
 
-	j imprime_loop			# desvia para imprime_loop
+	j imprime_loop				# desvia para imprime_loop
 
 imprime_nova_linha:
 
-	la a0, new_line			# coloca o {str_break} em a0
-	li a7, 4			# coloca o valor 4 em a7 (4 = imprimir string)
-	ecall				# faz a chamada de sistema (usando sempre o valor que esta em a7)
+	la a0, quebra_linha			# coloca o {quebra_linha} em a0
+	li a7, 4				# coloca o valor 4 em a7 (4 = imprimir string)
+	ecall					# faz a chamada de sistema (usando sempre o valor que esta em a7)
 	
-	addi t1, zero, 10		# reinicia o contador em t1 (contador das quebras de linha)
+	addi t1, zero, 10			# reinicia o contador em t1 (contador das quebras de linha)
 	
-	j imprime_loop			# desvia para imprime_loop
+	j imprime_loop				# desvia para imprime_loop
 
 fim_imprime:
 
-	la a0, new_line			# coloca {str_break} em a0
-	li a7, 4			# coloca o valor 4 em a7 (4 = imprimir string)
-	ecall				# faz a chamada de sistema (usando sempre o valor que esta em a7)
+	ret					# retorna
 
-	ret				# retorna
+ ########################################
+ # funcao: imprime_matriz_jogo     	#
+ # argumentos: a3 -> matriz_jogo   	#
+ # comentario: imprime a matriz	do jogo #
+ ########################################
 
-###################################################
-# funcao: reset					  #
-# retorno: a0 -> posicao inicial da string navios #
-#          a1 -> posicao inicial da matriz_navios #
-###################################################
+imprime_matriz_jogo:
+
+	addi t0, zero, 100			# contador do tamanho da matriz (t0 recebe o numero de elementos da matriz)
+	addi t1, zero, 10			# contador das quebras de linha (t1 recebe o tamanho da linha da matriz)
+
+loop_imprime_jogo:
+
+	beq t1, zero, nova_linha_jogo		# desvia se t1 (contador das quebras de linha) for igual a 0
+	bge zero, t0, fim_imprime_jogo		# desvia se t0 (contador do tamanho da matriz) for menor ou igual a 0 ("maior que" invertido)
+	
+	lb a0, 0(a3)				# coloca em a0 o conteudo de a3 (o primeiro elemento da lista) 
+	li a7, 11				# coloca o valor 11 em a7 (11 = imprimir caractere)
+	ecall					# faz a chamada de sistema (usando sempre o valor que esta em a7)
+	
+	la a0, espaco				# coloca o {str_espaco} em a0
+	li a7, 4				# coloca o valor 4 em a7 (4 = imprimir string)
+	ecall					# faz a chamada de sistema (usando sempre o valor que esta em a7)
+	ecall					# faz a chamada de sistema (usando sempre o valor que esta em a7)
+	
+	addi a3, a3, 4				# vai para o proximo valor de a3 (adicionando 4)
+	
+	addi t0, t0, -1				# decrementa o contador do tamanho da matriz
+	addi t1, t1, -1				# decrementa o contador das quebras de linha
+
+	j loop_imprime_jogo			# desvia para loop_imprime_jogo
+	
+nova_linha_jogo:
+
+	la a0, quebra_linha			# coloca {quebra_linha} em a0
+	li a7, 4				# coloca o valor 4 em a7 (4 = imprimir string)
+	ecall					# faz a chamada de sistema (usando sempre o valor que esta em a7)
+	
+	addi t1, zero, 10			# reinicia o contador em t1 (contador das quebras de linha)
+	
+	j loop_imprime_jogo			# desvia para imprime_loop
+
+fim_imprime_jogo:
+
+	ret					# retorna
+
+ ###################################################
+ # funcao: reset				   #
+ # retorno: a0 -> posicao inicial da string navios #
+ #          a1 -> posicao inicial da matriz_navios #
+ #          a3 -> posicao inicial da matriz_jogo   #
+ ###################################################
 
 reset:
 
-	la a0, navios			# carrega a string navios em a0
-	la a1, matriz_navios		# carrega a matriz_navios em a1
-	ret				# retorna
+	la a0, navios				# carrega o endereco de navios em a0
+	la a1, matriz_navios			# carrega o endereco de matriz_navios em a1
+	la a3, matriz_jogo			# carrega o endereço da matriz_jogo em a3
+	
+	ret					# retorna
