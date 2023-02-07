@@ -38,7 +38,9 @@ bem_vindo:	.string "Bem Vindo a Batalha Naval em Assembly!\n\n"
 
 obrigado:	.string "\nObrigado por Jogar!\n"
 
-menu_acoes:	.string "1 - Jogar\n2 - Selecionar Navios\n0 - Sair\n\n"
+acoes_menu:	.string "1 - Jogar\n2 - Selecionar Navios\n0 - Sair\n\n"
+
+acoes_jogo:	.string "1 - Nova Jogada\n2 - Estado Do Jogo\n3 - Reiniciar Jogo\n0 - Menu Principal\n\n"
 
 acao_invalida:	.string "Opção Inválida!\n\n"
 
@@ -49,8 +51,7 @@ aaa:		.string "\nEM DESENVOLVIMENTO!\n"
 menu:
 	
 	addi s4, zero, 0			# s4 possui o numero que cada navio vai ter na matriz
-	addi s1, zero, 1			# s1 possui o numero da primeira opcao do menu
-	addi s2, zero, 2			# s2 possui o numero da segunda opcao do menu
+	addi s5, zero, 1			# s5 possui o numero da primeira opcao do menu (1)
 	
 	jal reset				# chama a funcao reset
 	
@@ -60,54 +61,45 @@ menu:
 
 loop_menu:
 
-	la a0, menu_acoes			# carrega a string {menu_acoes} em a0
+	la a0, acoes_menu			# carrega a string {acoes_menu} em a0
 	li a7, 4				# carrega o imediato 4 (print string) em a7
 	ecall					# faz a chamada de sistema
 	
 	la a0, input				# carrega a string {input} em a0
 	li a7, 4				# carrega o imediato 4 (print string) em a7
 	ecall					# faz a chamada de sistema
-	
 	li a7, 5				# carrega o imediato 5 (read int) em a7
 	ecall					# faz a chamada de sistema
 	
-	beq a0, s1, menu_jogar
-	beq a0, s2, menu_escolher
-	beq a0, zero, fim_menu
+	beq a0, s5, menu_jogar			# desvia caso a0 (input do usuario) seja 1 (jogar)
+	bgt a0, s5, menu_escolher		# desvia caso a0 (input do usuario) seja maior que 1 (2) (escolher navios)
+	beq a0, zero, fim_menu			# desvia caso a0 (input do usuario) seja 0 (sair)
 	
 	la a0, acao_invalida			# carrega a string {acao_invalida} em a0
 	li a7, 4				# carrega o imediato 4 (print string) em a7
 	ecall					# faz a chamada de sistema
 	
-	j loop_menu
+	j loop_menu				# desvia para loop_menu
 
 menu_jogar:
 
-	la a0, quebra_linha			# coloca o {quebra_linha} em a0
-	li a7, 4				# coloca o valor 4 em a7 (4 = imprimir string)
-	ecall					# faz a chamada de sistema (usando sempre o valor que esta em a7)
-
-	#jal insere_embarcacoes			# chama a funcao insere_embarcacoes
-	
-	#jal reset				# chama a funcao reset
-	
-	#jal imprime_matriz_navios		# chama a funcao imprime_matriz_navios
-	
-	jal completa_jogo			# chama a funcao completa_jogo
+	jal inicio_jogo				# chama a funcao inicio_jogo
 	
 	jal reset				# chama a funcao reset
 	
-	jal imprime_matriz_jogo			# chama a funcao imprime_matriz_jogo
+	j loop_menu				# desvia para loop_menu
 
 menu_escolher:
 
-	la a0, aaa				# carrega a string {menu_acoes} em a0
+	la a0, aaa				# carrega a string {aaa} em a0
 	li a7, 4				# carrega o imediato 4 (print string) em a7
 	ecall					# faz a chamada de sistema
+	
+	j loop_menu				# desvia para loop_menu
 
 fim_menu:	
 
-	la a0, obrigado				# carrega a string {menu_acoes} em a0
+	la a0, obrigado				# carrega a string {obrigado} em a0
 	li a7, 4				# carrega o imediato 4 (print string) em a7
 	ecall					# faz a chamada de sistema
 
@@ -115,13 +107,99 @@ fim_menu:
 	ecall					# faz a chamada de sistema
 
  ###########################################################
+ # funcao: inicio_jogo					   #
+ # argumentos: a1 -> endereco inicial da matriz de navios  #
+ #             a3 -> endereço inicial da matriz de jogo	   #
+ # comentario: gerencia o funcionamento do jogo em si	   #
+ ###########################################################
+ 
+ # AGNT VAI TER QUE TER MUITO CUIDADO COM AS CHAMADAS DE FUNCOES, UM JAL DENTRO DE OUTRO JAL NAO FUNCIONA SE NÃO ARMAZENARMOS O ENDEREÇO DE RETORNO
+ # VOCE PROVAVELMENTE JA SABIA DISSO MAS TO ANOTANDO MESMO ASSIM JSDHGHJASDBAKSDN
+ 
+inicio_jogo:
+
+	addi s5, zero, 1			# s5 possui o numero da primeira opcao do menu
+	addi s6, zero, 2			# s6 possui o numero da segunda opcao do menu
+	
+	#jal completa_jogo			# chama a funcao completa_jogo
+	# FUNCAO COMPLETA JOGO PAROU DE FUNCIONAR (MESMO EU NAO ALTERANDO NADA), DEVE SER UM BUG NESSA FUNCAO INICIO_JOGO
+
+	la a0, quebra_linha			# coloca o {quebra_linha} em a0
+	li a7, 4				# coloca o valor 4 em a7 (4 = imprimir string)
+	ecall					# faz a chamada de sistema (usando sempre o valor que esta em a7)
+	
+	# FUTURAMENTE PRINTAR QUAL O CONJUNTO DE NAVIOS ATIVO NO MOMENTO
+	
+loop_jogo:
+
+	#  1 - Nova Jogada  2 - Estado Do Jogo  3 - Reiniciar Jogo  0 - Menu Principal
+
+	la a0, acoes_jogo			# coloca o {quebra_linha} em a0
+	li a7, 4				# coloca o valor 4 em a7 (4 = imprimir string)
+	ecall					# faz a chamada de sistema (usando sempre o valor que esta em a7)
+	
+	la a0, input				# carrega a string {input} em a0
+	li a7, 4				# carrega o imediato 4 (print string) em a7
+	ecall					# faz a chamada de sistema
+	li a7, 5				# carrega o imediato 5 (read int) em a7
+	ecall					# faz a chamada de sistema
+	
+	beq a0, s5, jogo_jogada			# desvia caso a0 (input do usuario) seja 1 (nova jogada)
+	beq a0, s6, jogo_estado			# desvia caso a0 (input do usuario) seja 2 (estado do jogo)
+	bgt a0, s6, jogo_reiniciar		# desvia caso a0 (input do usuario) seja maior que 2 (3) (reiniciar jogo)
+	beq a0, zero, fim_jogo			# desvia caso a0 (input do usuario) seja 0 (menu principal)
+	
+	j loop_jogo				# desvia para loop_jogo
+
+jogo_jogada:
+
+	la a0, aaa				# carrega a string {aaa} em a0
+	li a7, 4				# carrega o imediato 4 (print string) em a7
+	ecall					# faz a chamada de sistema
+	
+	j loop_jogo				# desvia para loop_jogo
+	
+jogo_estado:
+
+	la a0, quebra_linha			# coloca o {quebra_linha} em a0
+	li a7, 4				# coloca o valor 4 em a7 (4 = imprimir string)
+	ecall					# faz a chamada de sistema (usando sempre o valor que esta em a7)
+
+	jal imprime_matriz_jogo			# chama a funcao imprime_matriz_jogo
+	
+	la a0, quebra_linha			# coloca o {quebra_linha} em a0
+	li a7, 4				# coloca o valor 4 em a7 (4 = imprimir string)
+	ecall					# faz a chamada de sistema (usando sempre o valor que esta em a7)
+	
+	j loop_jogo				# desvia para loop_jogo
+	
+jogo_reiniciar:
+
+	la a0, aaa				# carrega a string {aaa} em a0
+	li a7, 4				# carrega o imediato 4 (print string) em a7
+	ecall					# faz a chamada de sistema
+	
+	j loop_jogo				# desvia para loop_jogo
+			
+fim_jogo:
+
+	la a0, quebra_linha			# coloca o {quebra_linha} em a0
+	li a7, 4				# coloca o valor 4 em a7 (4 = imprimir string)
+	ecall					# faz a chamada de sistema (usando sempre o valor que esta em a7)
+
+	ret					# retorna
+
+ ###########################################################
  # funcao: insere_embarcacoes				   #
  # argumentos: a0 -> endereco inicial da string navios	   #
  #             a1 -> endereco inicial da matriz de navios  #
  # retorno: a1 -> matriz preenchida com os navios	   #
  # comentario: le os navios a serem inseridos, checando    #
- # 	      caso sejam validos e os inserindo na matrix  #
+ # 	      caso sejam validos e os inserindo na matriz  #
  ###########################################################
+ 
+ # SERA QUE DEVERIAMOS CRIAR UMA FUNCAO DE RESET PRA MATRIZ, CHAMANDO ELA CASO DE UM ERRO NA INSERCAO ?
+ # PELO QUE EU VI UM NAVIO INSERIDO ANTES DO ERRO PERMANECE NO LUGAR OQUE PODE DAR PROBLEMAS TALVEZ ?
 
 insere_embarcacoes:
 
@@ -167,17 +245,18 @@ insere_um_navio:
 	
 	addi t1, t1, -1				# decrementa t1 em 1
 	
-	j loop_insere_embarcacoes
+	j loop_insere_embarcacoes		# desvia para loop_insere_embarcacoes
 	
 fim_insere_embarcacoes:
 
 	ret					# retorna
 	
-fim_insere_embarcacoes_erro:			# imprime mensagem de erro caso um dos navios nao seja valido e retorna
-			
-	la a0, erro_navios			
-	li a7, 4
-	ecall
+fim_insere_embarcacoes_erro:
+	
+	la a0, erro_navios			# carrega a string erro_navios em a0
+	li a7, 4				# carrega o imediato 4 (print string) em a7
+	ecall					# faz a chamada de sistema
+	
 	ret					# retorna
 	
  ###########################################################
@@ -190,18 +269,18 @@ fim_insere_embarcacoes_erro:			# imprime mensagem de erro caso um dos navios nao
 completa_jogo:
 
 	addi t0, zero, 100			# adiciona 100 em t0 (contador de elementos na matriz)
-	lb t1, ignoto
+	lb t1, ignoto				# carrega o caractere ignoto em t1
 	
 loop_completa_jogo:
 
 	beq t0, zero, fim_completa_jogo		# desvia se todos os valores foram inseridos (t0 = 0)
 	
-	sb t1, 0(a3)
+	sb t1, 0(a3)				# salva o conteudo de t1 em um dos elementos de a3
 	
-	addi a3, a3, 4
-	addi t0, t0, -1
+	addi a3, a3, 4				# vai para o proximo valor de a3 adicionando 4 (tamanho de um inteiro)
+	addi t0, t0, -1				# decrementa o contador de elementos na matriz (t0)
 	
-	j loop_completa_jogo
+	j loop_completa_jogo			# desvia para loop_completa_jogo
 	
 fim_completa_jogo:
 
@@ -251,7 +330,7 @@ checa_horizontal:
 	
 	add t6, t5, t3				# t6 -> tamanho do barco + coluna inicial (para verificar se ultrapassa as dimensoes)
 	
-	j checa_limite
+	j checa_limite				# desvia para checa_limite
 	
 checa_vertical:
 
