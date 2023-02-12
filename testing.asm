@@ -44,6 +44,12 @@ error_message_partida:   .string "This position is invalid, please give me a val
 
 error_message_partida_repetida:  .string  "You've already tried this one!\n"
 
+opcoes:		.string  "1 - Reiniciar o jogo\n2 - Mostrar a matriz atual\n3 - Fazer uma nova jogada\n"
+
+opcao_invalida: .string  "Opção inválida!\n"
+
+mensagem_venceu: .string  "Congrats! You Won!!\n"
+
 here:  		.string "Here\n"
 
 	.text
@@ -139,11 +145,53 @@ fim_insere_embarcacoes_erro:		# imprime mensagem de erro caso um dos navios não
 # comentário: representa a partida
 #########################################################
 partida:
+	j loop_partida
+partida_menu:
 	la a1, matriz_jogo
 	
 	jal s9, imprime_matriz_navios
 	
 	jal s9, placar
+	
+	la a0, opcoes
+	li a7, 4
+	ecall
+	
+	li a7, 5
+	ecall
+	
+	addi a1, zero, 1
+	beq a0, a1, partida_reiniciar
+	
+	addi a1, zero, 2
+	beq a0, a1, partida_mostrar_matriz
+	
+	addi a1, zero, 3
+	beq a0, a1, partida
+	
+	la a0, opcao_invalida
+	li a7, 4
+	ecall
+	
+	j partida_menu
+partida_reiniciar:
+	la a1, matriz_jogo
+	
+	jal s9, zera_matriz
+	
+	addi s1, zero, 0
+	addi s10, zero, 0
+	
+	la a0, voce_placar
+	sw zero, 0(a0)
+
+	j partida
+
+partida_mostrar_matriz:
+	la a1, matriz_navios
+	jal s9, imprime_matriz_navios
+	
+	j partida
 	
 loop_partida:
 	# Linha = t4
@@ -180,11 +228,11 @@ loop_partida:
 	
 	jal s7, partida_coloca_valores
 	
-	beq a2, zero, partida
+	beq a2, zero, partida_menu
 	
 	jal s7, partida_checa_fim
 	
-	beq a2, zero, partida
+	beq a2, zero, partida_menu
 	
 	la a0, navios
 	
@@ -194,7 +242,11 @@ loop_partida:
 	la s2, voce_placar
 	lw s2, 0(s2)
 	
-	bne s2, t1, partida
+	bne s2, t1, partida_menu
+	
+	la a0, mensagem_venceu
+	li a7, 4
+	ecall
 	
 	ret
 	
@@ -205,7 +257,7 @@ partida_mensagem_erro:
 	
 	addi s1, s1, -1
 	
-	j partida
+	j partida_menu
 	
 # s1 -> tiros (voce)
 # s10 -> acertos (voce)
@@ -316,19 +368,6 @@ loop_navio_valores_decrementa:
 	
 partida_terminou:
 	addi a2, zero, 1
-	j partida_mensagem_terminou
-	
-partida_navio_nao_encontrado:
-	addi t1, t1, -1
-	bne  t1, zero, loop_partida_checa_fim
-partida_nao_terminou:	
-	j partida_mensagem_nao_terminou
-
-partida_mensagem_terminou:
-	la a0, terminou
-	li a7, 4
-	ecall
-	
 	la s2, voce_placar
 	lw a3, 0(s2)
 	addi a3, a3, 1
@@ -338,8 +377,11 @@ partida_mensagem_terminou:
 	jal s9, afunda_navio
 	
 	jr s7
-
-partida_mensagem_nao_terminou:
+	
+partida_navio_nao_encontrado:
+	addi t1, t1, -1
+	bne  t1, zero, loop_partida_checa_fim
+partida_nao_terminou:	
 	addi a2, zero, 0
 	
 	la a0, nao_terminou
@@ -677,7 +719,7 @@ zera_end:
 # placar
 # argumentos: s1 -> tiros (voce)
 #             s10 -> acertos (voce)
-#             s2 -> afundados (voce)
+#             voce_placar -> afundados (voce)
 #             ultimo tiro - a5 a6
 #	      s0 -> acertos e tiros (recorde)
 # retorno:(nenhum retorno)
@@ -685,6 +727,10 @@ zera_end:
 #########################################################
 
 placar:
+	la a0, new_line
+	li a7, 4
+	ecall
+	
 	la a0, navios
 	lb t1, 0(a0)			# t1 -> contador de barcos (em ascii)
 	addi t1, t1, -48			# subtrai 48 do valor de t1 (convertendo o numero em string para inteiro)
@@ -723,6 +769,10 @@ placar:
 	
 	addi a0, t1, 0
 	li a7, 1
+	ecall
+	
+	la a0, new_line
+	li a7, 4
 	ecall
 	
 	la a0, new_line
@@ -784,6 +834,10 @@ placar:
 	
 	addi a0, a6, 0
 	li a7, 1
+	ecall
+	
+	la a0, new_line
+	li a7, 4
 	ecall
 	
 	la a0, new_line
