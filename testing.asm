@@ -6,11 +6,13 @@
 
 	.data
 
-navios:	.asciz	"3\n1 5 1 1\n0 8 2 2\n0 1 6 4"
+navios:	.asciz	"3\n1 5 1 1\n0 8 2 2\n0 2 6 4"
 
 matriz_navios: 	.space 	400			# 10 x 10 x 4 (integer size)
 
 matriz_jogo:    .space  400			# 10 x 10 x 4 (integer size)
+
+voce_placar:    .word  0
 
 new_line:	.string "\n"
 
@@ -23,6 +25,18 @@ coluna:		.string "Coluna: "
 nao_terminou:	.string "Partida não terminou!\n"
 
 terminou:	.string  "Partida terminou!\n"
+
+recorde:	.string  "Recorde\n"
+
+voce:		.string  "Voce\n"
+
+tiros:		.string  "Tiros: "
+
+acertos:	.string  "Acertos: "
+
+afundados:	.string  "Afundados: "
+
+ultimo_tiro:	.string  "Último tiro: "
 
 error_message:  .string "This boat is invalid\n"
 
@@ -39,6 +53,8 @@ main:
 	la a0, navios				# carrega o endereco de navios em a0
 	la a1, matriz_navios			# carrega o endereço de matriz_navios em a1
 	
+	addi s0, zero, 0
+	
 	addi s4, zero, 0			# s4 possui o número que cada navio vai ter na matriz
 	
 	jal insere_embarcacoes			# chama a função insere_embarcacoes
@@ -46,6 +62,10 @@ main:
 	jal reset				# chama a função reset
 	
 	jal s9, imprime_matriz_navios		# chama a função imprime_interface_navios
+	
+	addi s1, zero, 0
+	addi s10, zero, 0
+	addi s2, zero, 0
 	
 	call partida
 	
@@ -122,9 +142,14 @@ partida:
 	la a1, matriz_jogo
 	
 	jal s9, imprime_matriz_navios
+	
+	jal s9, placar
+	
 loop_partida:
 	# Linha = t4
 	# Coluna = t5
+	
+	addi s1, s1, 1		# s1 -> tiros
 
 	la a0, linha	#imprime string com "Linha: "
 	li a7, 4
@@ -144,6 +169,9 @@ loop_partida:
 	
 	addi t5, a0, 0		# guarda o valor da coluna em t5
 	
+	addi a5, t4, 0
+	addi a6, t5, 0
+	
 	addi s11, zero, 1
 	
 	jal s9, checa_valores		# checa se linha e coluna são válidas
@@ -158,6 +186,16 @@ loop_partida:
 	
 	beq a2, zero, partida
 	
+	la a0, navios
+	
+	lb t1, 0(a0)			# t1 -> contador de barcos (em ascii)
+	addi t1, t1, -48			# subtrai 48 do valor de t1 (convertendo o numero em string para inteiro)
+	
+	la s2, voce_placar
+	lw s2, 0(s2)
+	
+	bne s2, t1, partida
+	
 	ret
 	
 partida_mensagem_erro:
@@ -165,8 +203,14 @@ partida_mensagem_erro:
 	li a7, 4
 	ecall
 	
+	addi s1, s1, -1
+	
 	j partida
 	
+# s1 -> tiros (voce)
+# s10 -> acertos (voce)
+# s2 -> afundados (voce)
+# ultimo tiro - a5 a6
 	
 #########################################################
 # partida_coloca_valores
@@ -178,6 +222,7 @@ partida_mensagem_erro:
 # comentário: coloca a posicao linha x coluna que o jogador escolheu, se jogada ainda não foi realizado
 #########################################################	
 partida_coloca_valores:
+	
 	la a1, matriz_navios			# carrega a matriz_navios em a1
 	la a2, matriz_jogo			# carrega a matriz_jogo em a2
 
@@ -202,9 +247,12 @@ partida_coloca_valores:
 partida_acertou:
 	addi s4, zero, 1			# s4 -> 1 (acertou navio)
 	sb s4, 0(a2)
-	jal s6, partida_checa_fim
+	
+#	jal s6, partida_checa_fim
 	
 	addi a2, zero, 1
+	addi s10, s10, 1		# s10 -> acertos
+	
 	jr s7
 
 partida_errou:
@@ -217,7 +265,6 @@ partida_ja_realizada:
 	la a0, error_message_partida_repetida
 	li a7, 4
 	ecall
-	
 	jr s7
 	
 	
@@ -237,9 +284,9 @@ loop_partida_checa_fim:
 	jal s9, le_navios
 	
 loop_navio:
-	bge zero, t3, partida_terminou		# percorre todas as posições do navio até tamanho ser menor ou igual a 0
+	beq zero, t3, partida_terminou		# percorre todas as posições do navio até tamanho ser menor ou igual a 0
 
-	addi s10, zero, 1
+	addi s4, zero, 1
 	addi s2, zero, 10		# QTD_colunas
 	
 	la a1, matriz_jogo
@@ -253,7 +300,7 @@ loop_navio:
 	
 	lb s5, 0(a1)
 	
-	bne s5, s10, partida_navio_nao_encontrado
+	bne s5, s4, partida_navio_nao_encontrado
 continua:
 	bne t2, zero, loop_navio_vertical	# desvia para loop_navio_vertical se o barco for vertical
 loop_navio_horizontal:
@@ -282,6 +329,14 @@ partida_mensagem_terminou:
 	li a7, 4
 	ecall
 	
+	la s2, voce_placar
+	lw a3, 0(s2)
+	addi a3, a3, 1
+
+	sw a3, 0(s2)
+	
+	jal s9, afunda_navio
+	
 	jr s7
 
 partida_mensagem_nao_terminou:
@@ -290,7 +345,7 @@ partida_mensagem_nao_terminou:
 	la a0, nao_terminou
 	li a7, 4
 	ecall
-	
+
 	jr s7
 
 	
@@ -348,11 +403,13 @@ checa_posicao:
 	bne s11, zero, fim_checa_valores
 	
 checa_primeiro_digito:				# checa o primeiro digito -> deve ser igual a 0 ou 1
-	bgt t2, t6, erro_encontrado			# identifica erro se a posição for maior que 1
+	bgt t2, t6, erro_encontrado		# identifica erro se a posição for maior que 1
 	addi t6, zero, 10			# t6 -> 10 (quantidade de linhas e colunas)
 	blt t2, zero, erro_encontrado		# identifica erro se a posição for menor que 0
 	
 checa_tamanho:
+	add s0, s0, t3
+	
 	blt t3, zero, erro_encontrado		# identifica erro se o tamanho do barco for menor que 0
 	bgt t3, t6, erro_encontrado			# identifica erro se o tamanho do barco for maior que 10
 	
@@ -412,10 +469,12 @@ checa_sobreposicao_decrementa:
 	
 fim_checa_valores:
 	addi a2, zero, 1			# a2 = 1 (válida)
+	
 	jr s9
 
 erro_encontrado:
 	addi a2, zero, 0			# a2 = 0 (inválida)
+	
 	jr s9					# retorna
 
 #########################################################
@@ -503,6 +562,94 @@ p_end:
 
 	jr s9 # retorna
 
+
+#########################################################
+# afunda_navio
+# argumentos: ?????????/
+# retorno: ?????????
+# comentário: ?????????
+#
+#########################################################
+afunda_navio:
+	la s4, navios
+	lb t2, 0(s4)
+	addi t2, t2, -48  # t2 -> barcos totais
+	
+	addi a3, t1, 0   # t1 -> barco atual em ordem contrária
+	addi s3, zero, -1
+	mul a3, a3, s3
+	add t1, t2, a3
+	addi t1, t1, 1  # t1 -> barco atual
+	
+	addi s3, zero, 6
+	mul s3, s3, t1
+	add t1, t2, a3
+	addi a3, zero, 2
+	mul t1, t1, a3
+	add s3, s3, t1  # deslocamento
+			#6 * barco_atual(t1) = 6
+			# x = barcos totais(ler em t4 -> 3) - barco atual(a3 -> 3) = 0
+			# x * 2 = 0
+			# 6 * barco_atual(t1) + x * 2 = 6
+	
+	add s4, s4, s3
+	
+	addi t2, zero, -4
+	
+	add s4, s4, t2
+	
+	lb t2, 0(s4)
+	addi t2, t2, -48  # t2 -> horizontal ou vertical
+	
+	addi s4, s4, 2
+	
+	lb t3, 0(s4)
+	addi t3, t3, -48  # t3 -> tamanho
+	
+	addi s4, s4, 2
+	
+	lb t4, 0(s4)
+	addi t4, t4, -48  # t4 -> linha inicial
+	
+	addi s4, s4, 2
+	
+	lb t5, 0(s4)
+	addi t5, t5, -48  # t5 -> coluna inicial
+	
+	
+	addi s4, zero, -2
+
+loop_afunda_navio:
+	bge zero, t3, fim_afunda_navio		# percorre todas as posições do navio até tamanho ser menor ou igual a 0
+	
+	addi s2, zero, 10		# QTD_colunas
+	
+	la a1, matriz_jogo
+
+	mul s3, t4, s2			# L * QTD_colunas
+	addi s5, zero, 4		# s5 -> 4
+	add s3, s3, t5			# L * QTD_colunas + C
+	mul s2, s3, s5			# s2 -> (L * QTD_colunas + C) * 4 -> deslocamento para posição
+	
+	add a1, a1, s2			# a1 -> é delocado s2 vezes
+	
+	sb s4, 0(a1)			# a posição de a1 recebe o valor que identifica o barco
+	
+	bne t2, zero, afunda_navio_vertical	# desvia para coloca_valores_vertical se o barco for vertical
+afunda_navio_horizontal:
+	addi t5, t5, 1			# t5 + 1 -> aumenta coluna inicial
+	j afunda_navio_decrementa			
+	
+afunda_navio_vertical:
+	addi t4, t4, 1			# t4 + 1 -> aumenta linha inicial
+	
+afunda_navio_decrementa:
+	addi t3, t3, -1			# decrementa o tamanho do barco em 1 para continuar preenchendo na matriz
+	j loop_afunda_navio
+	
+fim_afunda_navio:
+	jr s9
+
 #########################################################
 # zera_matriz
 # argumentos: a1 -> matriz
@@ -525,6 +672,127 @@ zera_loop:
 	j zera_loop # desvia para {p_loop}
 zera_end:
 	jr s9 # retorna	
+	
+#########################################################
+# placar
+# argumentos: s1 -> tiros (voce)
+#             s10 -> acertos (voce)
+#             s2 -> afundados (voce)
+#             ultimo tiro - a5 a6
+#	      s0 -> acertos e tiros (recorde)
+# retorno:(nenhum retorno)
+# comentário: mostra o placar do jogador e do recorde
+#########################################################
+
+placar:
+	la a0, navios
+	lb t1, 0(a0)			# t1 -> contador de barcos (em ascii)
+	addi t1, t1, -48			# subtrai 48 do valor de t1 (convertendo o numero em string para inteiro)
+	
+	la a0, recorde
+	li a7, 4
+	ecall
+	
+	la a0, tiros
+	li a7, 4
+	ecall
+	
+	addi a0, s0, 0
+	li a7, 1
+	ecall
+	
+	la a0, new_line
+	li a7, 4
+	ecall
+	
+	la a0, acertos
+	li a7, 4
+	ecall
+	
+	addi a0, s0, 0
+	li a7, 1
+	ecall
+	
+	la a0, new_line
+	li a7, 4
+	ecall
+	
+	la a0, afundados
+	li a7, 4
+	ecall
+	
+	addi a0, t1, 0
+	li a7, 1
+	ecall
+	
+	la a0, new_line
+	li a7, 4
+	ecall
+	
+	la a0, voce
+	li a7, 4
+	ecall
+	
+	la a0, tiros
+	li a7, 4
+	ecall
+	
+	addi a0, s1, 0
+	li a7, 1
+	ecall
+	
+	la a0, new_line
+	li a7, 4
+	ecall
+	
+	la a0, acertos
+	li a7, 4
+	ecall
+	
+	addi a0, s10, 0
+	li a7, 1
+	ecall
+	
+	la a0, new_line
+	li a7, 4
+	ecall
+	
+	la a0, afundados
+	li a7, 4
+	ecall
+	
+	la s2, voce_placar
+	lw a0, 0(s2)
+	li a7, 1
+	ecall
+	
+	la a0, new_line
+	li a7, 4
+	ecall
+	
+	la a0, ultimo_tiro
+	li a7, 4
+	ecall
+	
+	addi a0, a5, 0
+	li a7, 1
+	ecall
+	
+	la a0, space
+	li a7, 4
+	ecall
+	
+	addi a0, a6, 0
+	li a7, 1
+	ecall
+	
+	la a0, new_line
+	li a7, 4
+	ecall
+	
+	jr s9
+	
+	
 
 #########################################################
 # reset
