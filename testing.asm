@@ -125,15 +125,11 @@ loop_partida:
 	
 	addi t4, a0, 0		# guarda o valor da linha em t4
 	
-	la a0, new_line		#imprime nova linha
-	li a7, 4
-	ecall
-	
 	la a0, coluna 		# imprime string com "Coluna: "
 	li a7, 4
 	ecall
 	
-	li a7, 5
+	li a7, 5		# pede a coluna
 	ecall
 	
 	addi t5, a0, 0		# guarda o valor da coluna em t5
@@ -144,7 +140,22 @@ loop_partida:
 	
 	beq a2, zero, partida_mensagem_erro
 	
-#	jal s9, partida_coloca_valores
+	jal s7, partida_coloca_valores
+	
+	beq a2, zero, partida
+	
+	jal s7, partida_checa_fim
+	
+	beq a2, zero, partida
+	
+	ret
+	
+partida_mensagem_erro:
+	la a0, error_message_partida
+	li a7, 4
+	ecall
+	
+	j partida
 	
 	
 #########################################################
@@ -152,8 +163,9 @@ loop_partida:
 # argumentos: t4 -> linha
 #	      t5 -> coluna	
 # retorno: matriz_jogo com a posição escolhida, 1 se acertou e -1 se errou
+#	   a2 -> 1 (acertou), a2 -> 0 (errou)
 #
-# comentário: coloca a posicao linha x coluna que o jogador escolheu, se jogada ainda não foi realizad
+# comentário: coloca a posicao linha x coluna que o jogador escolheu, se jogada ainda não foi realizado
 #########################################################	
 partida_coloca_valores:
 	la a1, matriz_navios			# carrega a matriz_navios em a1
@@ -180,19 +192,35 @@ partida_coloca_valores:
 partida_acertou:
 	addi s4, zero, 1			# s4 -> 1 (acertou navio)
 	sb s4, 0(a2)
-	jal partida_checa_fim
+	jal s6, partida_checa_fim
+	
+	addi a2, zero, 1
+	jr s7
 
 partida_errou:
 	addi s4, zero, -1			# s4 -> -1 (errou navio)
 	sb s4, 0(a2)
-	j partida
+	addi a2, zero, 0
+	jr s7
 	
+partida_ja_realizada:
+	la a0, error_message_partida_repetida
+	li a7, 4
+	ecall
+	
+	jr s7
+	
+	
+#########################################################
+# partida_checa_fim
+# argumentos: ???????
+# retorno: a2 = 1 (terminou) ou a2 = 0 (não terminou)
+# comentário: ????????
+#########################################################
 partida_checa_fim:
-	
 	la a0, navios
 	lb t1, 0(a0)			# t1 -> contador de barcos (em ascii)
 	addi t1, t1, -48			# subtrai 48 do valor de t1 (convertendo o numero em string para inteiro)
-	addi s8, zero, 1
 	
 loop_partida_checa_fim:
 	ble t1, zero, partida_terminou                 # desvia se já leu todos os navios
@@ -230,13 +258,13 @@ loop_navio_valores_decrementa:
 	j loop_navio
 	
 partida_terminou:
+	addi a2, zero, 1
 	j partida_mensagem_terminou
 	
 partida_navio_nao_encontrado:
 	addi t1, t1, -1
 	bne  t1, zero, loop_partida_checa_fim
 partida_nao_terminou:	
-	addi a1, zero, 0
 	j partida_mensagem_nao_terminou
 
 partida_mensagem_terminou:
@@ -244,28 +272,16 @@ partida_mensagem_terminou:
 	li a7, 4
 	ecall
 	
-	ret
+	jr s7
 
 partida_mensagem_nao_terminou:
+	addi a2, zero, 0
+	
 	la a0, nao_terminou
 	li a7, 4
 	ecall
 	
-	j partida
-	
-partida_mensagem_erro:
-	la a0, error_message_partida
-	li a7, 4
-	ecall
-	
-	j partida
-	
-partida_ja_realizada:
-	la a0, error_message_partida_repetida
-	li a7, 4
-	ecall
-	
-	j partida
+	jr s7
 
 	
 #########################################################
