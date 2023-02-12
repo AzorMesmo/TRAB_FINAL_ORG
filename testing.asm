@@ -45,13 +45,21 @@ main:
 	
 	jal reset				# chama a função reset
 	
-	jal s9, imprime_interface_navios		# chama a função imprime_interface_navios
+	jal s9, imprime_matriz_navios		# chama a função imprime_interface_navios
 	
 	call partida
 	
 	la a1, matriz_jogo
 	
-	jal s9, imprime_interface_navios
+	jal s9, imprime_matriz_navios
+	
+	la a1, matriz_jogo
+	
+	jal s9, zera_matriz
+	
+	la a1, matriz_jogo
+	
+	jal s9, imprime_matriz_navios
 
 main_end:	
 
@@ -111,7 +119,9 @@ fim_insere_embarcacoes_erro:		# imprime mensagem de erro caso um dos navios não
 # comentário: representa a partida
 #########################################################
 partida:
-
+	la a1, matriz_jogo
+	
+	jal s9, imprime_matriz_navios
 loop_partida:
 	# Linha = t4
 	# Coluna = t5
@@ -316,28 +326,6 @@ le_navios:
 	
 	jr s9	
 	
-#########################################################
-# deslocamento
-# argumentos: 
-# t1 -> contador de barcos
-# t2 -> direcao do barco
-# t3 -> tamanho do barco
-# t4 -> linha inicial do barco
-# t5 -> coluna inicial do barco
-# retorno:(s2 -> deslocamento necessário)
-# comentário: retorna o valor necessário para o deslocamento dentro da matriz para atingir uma certa posição (linha x coluna)
-#########################################################
-deslocamento:
-	addi s2, zero, 10		# QTD_colunas
-	mul s3, t4, s2			# L * QTD_colunas
-	addi s5, zero, 4		# s5 -> 4
-	add s3, s3, t5			# L * QTD_colunas + C
-	mul s2, s3, s5			# s2 -> (L * QTD_colunas + C) * 4 -> deslocamento para posição
-	
-	addi a0, s2, 0
-	
-	jr s9
-	
 
 #########################################################
 # checa_valores
@@ -477,7 +465,7 @@ fim_coloca_valores:
 # comentário: imprime a matriz
 #
 #########################################################
-imprime_interface_navios:
+imprime_matriz_navios:
 	
 	addi a4, a1, 0 # coloca o valor de a1 (endereço incial da matriz) em a4
 	addi t0, zero, 100 # contador do tamanho da matriz (t0 recebe o numero de elementos da matriz)
@@ -514,7 +502,29 @@ p_end:
 	ecall # faz a chamada de sistema (usando sempre o valor que esta em a7)
 
 	jr s9 # retorna
+
+#########################################################
+# zera_matriz
+# argumentos: a1 -> matriz
+# retorno:(nenhum retorno)
+# comentário: imprime a matriz ????????????????????????????????// arrumar todos comentários e descrição da função
+#
+#########################################################
+zera_matriz:
+	addi a4, a1, 0 # coloca o valor de a1 (endereço incial da matriz) em a4
+	addi t0, zero, 100 # contador do tamanho da matriz (t0 recebe o numero de elementos da matriz)
+zera_loop:
+	bge zero, t0, zera_end # desvia se t0 (contador do tamanho da matriz) for menor ou igual a 0 ("maior que" invertido)
 	
+	sb zero, 0(a4) # coloca em a0 o conteudo de a4 (o primeiro elemento da lista) 
+	
+	addi a4, a4, 4 # vai para o proximo valor de a4 (adicionando 4)
+	
+	addi t0, t0, -1 # decrementa o contador do tamanho da matriz
+
+	j zera_loop # desvia para {p_loop}
+zera_end:
+	jr s9 # retorna	
 
 #########################################################
 # reset
