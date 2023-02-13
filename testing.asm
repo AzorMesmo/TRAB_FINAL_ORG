@@ -6,69 +6,78 @@
 
 	.data
 
-navios:	.asciz	"3\n1 5 1 1\n0 8 2 2\n0 2 6 4"
+navios:				.asciz	"3\n1 5 1 1\n0 8 2 2\n0 2 6 4"
 
-matriz_navios: 	.space 	400			# 10 x 10 x 4 (integer size)
+navios0:			.asciz	"3\n1 3 1 3\n0 9 4 1\n1 5 5 5"
 
-matriz_jogo:    .space  400			# 10 x 10 x 4 (integer size)
+navios1:			.asciz	"4\n0 5 0 2\n0 4 3 0\n1 3 4 6\n1 2 8 2"
 
-voce_placar:    .word  0, 0, 0
+navios2:			.asciz	"5\n0 2 0 3\n0 1 2 8\n0 1 4 1\n1 3 5 7\n0 2 9 0"
+
+navios3:			.asciz	"2\n0 1 3 9\n0 1 6 2"
+
+navios4:			.asciz	"5\n0 1 3 3\n0 1 3 6\n0 1 5 2\n0 1 5 7\n0 4 6 3"
+
+matriz_navios: 			.space 	400			# 10 x 10 x 4 (integer size)
+
+matriz_jogo:    		.space  400			# 10 x 10 x 4 (integer size)
+
+voce_placar:    		.word  0, 0, 0
 # primeiro = afundados
 # segundo = quantidade de tiros ja disparados
 # terceiro = quantidade de tiros que acertaram o alvo
 # sempre le em s0 e s1
 
-recorde_placar:  .word 0, 0
+recorde_placar: 		.word 0, 0
 # primeiro = afundados
 # segundo = quantidade de tiros ja disparados e quantidade de tiros que acertaram o alvo
 # sempre le em s0 e s1
 
-new_line:	.string "\n"
+navios_escolhidos: 		.word 0
 
-space:		.string " "
+new_line:			.string "\n"
 
-linha:		.string "\nLinha: "
+space:				.string " "
 
-coluna:		.string "Coluna: "
+linha:				.string "\nLinha: "
 
-recorde:	.string "Recorde\n\n"
+coluna:				.string "Coluna: "
 
-voce:		.string "Jogo Atual\n\n"
+recorde:			.string "Recorde\n\n"
 
-tiros:		.string "Tiros: "
+voce:				.string "Jogo Atual\n\n"
 
-acertos:	.string "Acertos: "
+tiros:				.string "Tiros: "
 
-afundados:	.string "Afundados: "
+acertos:			.string "Acertos: "
 
-ultimo_tiro:	.string "\nUltimo Tiro: "
+afundados:			.string "Afundados: "
 
-error_message:  .string "This boat is invalid\n"
+ultimo_tiro:			.string "\nUltimo Tiro: "
 
-error_message_partida: .string "This position is invalid, please give a valid one\n"
+error_message:  		.string "Barco Invalido\n"
 
-error_message_partida_repetida: .string  "You've already tried this one!\n"
+error_message_partida: 		.string "Posicao Invalida, Tente Novamente\n"
 
-opcoes:		.string "1 - Reiniciar o jogo\n2 - Mostrar a matriz atual\n3 - Fazer uma nova jogada\n4 - Sair\n\n"
+error_message_partida_repetida: .string  "Invalido Novamente, Tente Outra Posicao\n"
 
-opcao_invalida: .string "Operacao invalida!\n"
+opcoes:				.string "1 - Reiniciar o jogo\n2 - Mostrar a matriz atual\n3 - Fazer uma nova jogada\n4 - Sair\n\n"
 
-mensagem_venceu: .string "Congrats! You Won!!\n"
+opcao_invalida: 		.string "\nOpcao Invalida!\n"
 
-bem_vindo:	.string "Bem Vindo a Batalha Naval em Assembly!\n"
+mensagem_venceu: 		.string "Congrats! You Won!!\n"
 
-obrigado:	.string "\nObrigado por Jogar!\n"
+bem_vindo:			.string "Bem Vindo a Batalha Naval em Assembly!\n"
 
-acoes_menu:	.string "\n1 - Jogar\n2 - Selecionar Navios\n0 - Sair\n\n"
+acoes_menu:			.string "\n1 - Jogar\n2 - Selecionar Navios\n0 - Sair\n\n"
 
-embarcacoes:	.string "\n1 -> F�cil\n2 -> M�dio\n3 -> Dif�cil\n4 -> HARDCORE\n0 -> :)\n\n"
+embarcacoes:			.string "\n1 -> Facil\n2 -> Medio\n3 -> Dificil\n4 -> HARDCORE\n0 -> :)\n\n"
+
+selecionados:			.string "\nConjunto De Navios Selecionado!\n"
 
 	.text
 
 main:
-
-	addi a1, zero, 1			# a1 -> o numero a ser usado nas comparacoes do menu principal e menu das escolhas de embarcacoes
-	addi a2, zero, 3			# a2 -> o numero a ser usado nas comparacoes do menu das escolhas de embarcacoes
 	
 	la a0, bem_vindo			# carrega a string {bem_vindo} em a0
 	li a7, 4				# carrega o imediato 4 (print string) em a7
@@ -82,11 +91,17 @@ main_loop:
 	li a7, 5				# carrega o imediato 5 (read int) em a7
 	ecall					# faz a chamada de sistema
 	
+	addi a1, zero, 1			# adicona 1 em a0
 	beq a0, a1, main_play			# desvia caso a0 (input do usuario) seja 1 (jogar)
-	bgt a0, a1, main_choose			# desvia caso a0 (input do usuario) seja maior que 1 (2) (escolher navios)
-	beq a0, zero, main_end			# desvia caso a0 (input do usuario) seja 0 (sair)
 	
-	la a0, opcao_invalida			# carrega a string {acoes_menu} em a0
+	addi a1, zero, 2			# adicona 2 em a0
+	beq a0, a1, main_choose			# desvia caso a0 (input do usuario) 2 (escolher navios)
+	
+	beq a0, zero, main_end			# desvia caso a0 (input do usuario) seja 0 (sair)
+
+main_invalida:
+			
+	la a0, opcao_invalida			# carrega a string opcao_invalida em a0
 	li a7, 4				# carrega o imediato 4 (print string) em a7
 	ecall					# faz a chamada de sistema
 	
@@ -110,11 +125,19 @@ main_choose:
 	li a7, 5				# carrega o imediato 5 (read int) em a7
 	ecall					# faz a chamada de sistema
 	
-	beq a0, a1, ships1			# desvia caso a0 (input do usuario) seja 1
-	beq a0, a2, ships3			# desvia caso a0 (input do usuario) seja 3
-	bgt a0, a2, ships4			# desvia caso a0 (input do usuario) seja maior que 3 (4)
-	bgt a0, a1, ships2			# desvia caso a0 (input do usuario) seja maior que 1 (2)
-	beq a0, zero, ships5			# desvia caso a0 (input do usuario) seja 0
+	addi a1, zero, 1			# adicona 1 em a0
+	beq a0, a1, ships0			# desvia caso a0 (input do usuario) seja 1
+	
+	addi a1, zero, 2			# adicona 2 em a0
+	beq a0, a1, ships1			# desvia caso a0 (input do usuario) seja 2
+	
+	addi a1, zero, 3			# adicona 3 em a0
+	beq a0, a1, ships2			# desvia caso a0 (input do usuario) seja 3
+	
+	addi a1, zero, 4			# adicona 4 em a0
+	beq a0, a1, ships3			# desvia caso a0 (input do usuario) seja 4
+	
+	beq a0, zero, ships4			# desvia caso a0 (input do usuario) seja 0
 	
 	la a0, opcao_invalida			# carrega a string {acoes_menu} em a0
 	li a7, 4				# carrega o imediato 4 (print string) em a7
@@ -122,31 +145,67 @@ main_choose:
 	
 	j main_choose
 
+ships0:
+
+	la a0, selecionados			# carrega a string selecionados em a0
+	li a7, 4				# carrega o imediato 4 (print string) em a7
+	ecall					# faz a chamada de sistema
+
+	addi t1, zero, 0			# adiciona 0 em t1 (valor do conjunto de navios escolhido)
+	la t0, navios_escolhidos		# carrega o endereço de navios_escolhidos em t0
+	sw t1, 0(t0) 				# salva t1 no endereço de t0 (conjunto de navios escolhido)
+
+	j main_loop				# desvia para main_loop
+
 ships1:
 
-	j main_loop
+	la a0, selecionados			# carrega a string selecionados em a0
+	li a7, 4				# carrega o imediato 4 (print string) em a7
+	ecall					# faz a chamada de sistema
+	
+	addi t1, zero, 1			# adiciona 1 em t1 (valor do conjunto de navios escolhido)
+	la t0, navios_escolhidos		# carrega o endereço de navios_escolhidos em t0
+	sw t1, 0(t0) 				# salva t1 no endereço de t0 (conjunto de navios escolhido)
+
+	j main_loop				# desvia para main_loop
 
 ships2:
 
-	j main_loop
+	la a0, selecionados			# carrega a string selecionados em a0
+	li a7, 4				# carrega o imediato 4 (print string) em a7
+	ecall					# faz a chamada de sistema
+	
+	addi t1, zero, 2			# adiciona 2 em t1 (valor do conjunto de navios escolhido)
+	la t0, navios_escolhidos		# carrega o endereço de navios_escolhidos em t0
+	sw t1, 0(t0) 				# salva t1 no endereço de t0 (conjunto de navios escolhido)
+
+	j main_loop				# desvia para main_loop
 
 ships3:
 
-	j main_loop
+	la a0, selecionados			# carrega a string selecionados em a0
+	li a7, 4				# carrega o imediato 4 (print string) em a7
+	ecall					# faz a chamada de sistema
+	
+	addi t1, zero, 3			# adiciona 3 em t1 (valor do conjunto de navios escolhido)
+	la t0, navios_escolhidos		# carrega o endereço de navios_escolhidos em t0
+	sw t1, 0(t0) 				# salva t1 no endereço de t0 (conjunto de navios escolhido)
+
+	j main_loop				# desvia para main_loop
 
 ships4:
 
-	j main_loop
-
-ships5:
-
-	j main_loop
-
-main_end:	
-
-	la a0, obrigado				# carrega a string {obrigado} em a0
+	la a0, selecionados			# carrega a string selecionados em a0
 	li a7, 4				# carrega o imediato 4 (print string) em a7
 	ecall					# faz a chamada de sistema
+	
+	addi t1, zero, 4			# adiciona 4 em t1 (valor do conjunto de navios escolhido)
+	la t0, navios_escolhidos		# carrega o endereço de navios_escolhidos em t0
+	sw t1, 0(t0) 				# salva t1 no endereço de t0 (conjunto de navios escolhido)
+
+	j main_loop				# desvia para main_loop
+
+main_end:	
 
 	li   a7, 10				# carrega o imediato 10 (print string) em a7 (registrador de system calls)
 	ecall					# faz a chamada de sistema
@@ -333,6 +392,10 @@ loop_partida_fim:
 	li a7, 4
 	ecall
 	
+partida_fim:
+
+	ret					# retorna
+	
 partida_placar_l_c:
 
 	addi a5, t4, 0				# a5 -> posicao da linha (para o placar)
@@ -346,10 +409,6 @@ partida_mensagem_erro:
 	ecall
 	
 	j partida_menu
-	
-partida_fim:
-
-	ret					# retorna
 	
 #########################################################
 # partida_coloca_valores
