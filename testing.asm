@@ -12,7 +12,16 @@ matriz_navios: 	.space 	400			# 10 x 10 x 4 (integer size)
 
 matriz_jogo:    .space  400			# 10 x 10 x 4 (integer size)
 
-voce_placar:    .word  0
+voce_placar:    .word  0, 0, 0
+# primeiro = afundados
+# segundo = quantidade de tiros já disparados
+# terceiro = quantidade de tiros que acertaram o alvo
+# sempre le em s0 e s1
+
+recorde_placar:  .word 0, 0
+# primeiro = afundados
+# segundo = quantidade de tiros já disparados e quantidade de tiros que acertaram o alvo
+# sempre le em s0 e s1
 
 new_line:	.string "\n"
 
@@ -50,18 +59,14 @@ mensagem_venceu: .string  "Congrats! You Won!!\n"
 
 main:
 	jal reset
-	
-	addi s0, zero, 0       			# s0 -> acertos e tiros (recorde)
+
 	addi s4, zero, 0			# s4 -> o número que cada navio vai ter na matriz
 	
 	jal insere_embarcacoes			# chama a função insere_embarcacoes
 	
 	jal reset				# chama a função reset
-	
-	addi s1, zero, 0			# s1 -> tiros (voce)
-	addi s10, zero, 0			# s10 -> acertos (voce)
 
-	jal partida				# chama a função partida
+	call partida				# chama a função partida
 
 main_end:	
 
@@ -78,9 +83,11 @@ main_end:
 #
 #########################################################
 insere_embarcacoes:
-	
 	lb t1, 0(a0)			# t1 -> contador de barcos (em ascii)
 	addi t1, t1, -48			# subtrai 48 do valor de t1 (convertendo o numero em string para inteiro)
+	
+	la s0, recorde_placar		# afundados (recorde) = quantidade de barcos
+	sw t1, 0(s0)
 	
 loop_insere_embarcacoes:
 	ble t1, zero, fim_insere_embarcacoes                 # desvia se já leu todos os navios
@@ -160,12 +167,16 @@ partida_reiniciar:
 	la a1, matriz_jogo			# coloca a matriz_jogo em a1
 	
 	jal s9, zera_matriz			# coloca todos os valores da posição dela valendo 0
+
+partida_reiniciar_placar:
+	la s0, voce_placar
+	sw zero, 0(s0)				# afundados (voce) = 0
+
+	addi s0, s0, 4
+	sw zero, 0(s0)				# tiros (voce) = 0
 	
-	addi s1, zero, 0			# s1 -> tiros (voce) = 0
-	addi s10, zero, 0  			# s10 -> acertos (voce) = 0
-	
-	la a0, voce_placar			
-	sw zero, 0(a0)				# barcos afundados = 0
+	addi s0, s0, 4
+	sw zero, 0(s0)				# acertos (voce) = 0
 
 	j partida
 
@@ -178,8 +189,6 @@ partida_mostrar_matriz:
 loop_partida:
 	# Linha = t4
 	# Coluna = t5
-	
-	addi s1, s1, 1		# s1 -> tiros + 1
 
 	la a0, linha		# imprime string com "Linha: "
 	li a7, 4
@@ -206,6 +215,7 @@ loop_partida_checa_valores:
 	jal s9, checa_valores		# checa se linha e coluna são válidas
 	
 	beq a2, zero, partida_mensagem_erro	# vai para partida_mensagem_erro caso partida seja inválida
+	
 loop_partida_coloca_valores:
 	jal s7, partida_coloca_valores		# vai para partida_coloca_valores para colocar a posicao do barco digitada
 	
@@ -243,8 +253,6 @@ partida_mensagem_erro:
 	li a7, 4
 	ecall
 	
-	addi s1, s1, -1				# s1 = s1 -1 (quantidade de tiros é decrementada)
-	
 	j partida_menu
 	
 #########################################################
@@ -277,6 +285,11 @@ partida_coloca_valores:
 	
 	bne s6, zero, partida_ja_realizada	# se o valor for diferente de 0, jogada já foi feita
 	
+	la s0, voce_placar
+	addi s1, zero, 1
+	jal s9, configura_placar		# tiros + 1
+	
+	
 	beq s5, zero, partida_errou		# identifica que errou a posição de um navio se o valor lido for 0
 	
 partida_acertou:
@@ -284,7 +297,10 @@ partida_acertou:
 	sb s4, 0(a2)				# coloca 1 na posicao escolhida
 	
 	addi a2, zero, 1		# a2 = 1 (acertou)
-	addi s10, s10, 1		# s10 = s10 + 1 -> acertos
+	
+	la s0, voce_placar
+	addi s1, zero, 2
+	jal s9, configura_placar		# acertos + 1
 	
 	jr s7
 
@@ -301,7 +317,6 @@ partida_ja_realizada:
 	ecall
 	
 	jr s7
-	
 	
 #########################################################
 # partida_checa_fim
@@ -350,11 +365,10 @@ loop_navio_valores_decrementa:
 	
 partida_terminou:
 	addi a2, zero, 1		# a2 -> 1 (afundou um navio)
-	la s2, voce_placar		
-	lw a3, 0(s2)			
-	addi a3, a3, 1
-
-	sw a3, 0(s2)			# afundados (voce) + 1
+	
+	la s0, voce_placar
+	addi s1, zero, 0
+	jal s9, configura_placar		# afundados (voce) + 1
 	
 	jal s9, afunda_navio		# chama funcao que coloca -2 nas posicoes do navio afundado
 	
@@ -428,7 +442,11 @@ checa_primeiro_digito:				# checa o primeiro digito -> deve ser igual a 0 ou 1
 	blt t2, zero, erro_encontrado		# identifica erro se a posição for menor que 0
 	
 checa_tamanho:
-	add s0, s0, t3
+	la s0, recorde_placar
+	addi s0, s0, 4
+	lw s1, 0(s0)
+	add s1, s1, t3
+	sw s1, 0(s0)				# numero de tiros e acertos do recorde
 	
 	blt t3, zero, erro_encontrado		# identifica erro se o tamanho do barco for menor que 0
 	bgt t3, t6, erro_encontrado			# identifica erro se o tamanho do barco for maior que 10
@@ -692,11 +710,6 @@ zera_end:
 	
 #########################################################
 # placar
-# argumentos: s1 -> tiros (voce)
-#             s10 -> acertos (voce)
-#             voce_placar -> afundados (voce)
-#             ultimo tiro - a5 a6
-#	      s0 -> acertos e tiros (recorde)
 # retorno:(nenhum retorno)
 # comentário: mostra o placar do jogador e do recorde
 #########################################################
@@ -710,86 +723,98 @@ placar:
 	lb t1, 0(a0)			# t1 -> contador de barcos (em ascii)
 	addi t1, t1, -48		# subtrai 48 do valor de t1 (convertendo o numero em string para inteiro)
 	
+placar_recorde:
 	la a0, recorde
 	li a7, 4
 	ecall
 	
-	la a0, tiros
-	li a7, 4
-	ecall
-	
-	addi a0, s0, 0			# imprime a quantidade de tiros (recorde)
-	li a7, 1
-	ecall
-	
-	la a0, new_line
-	li a7, 4
-	ecall
-	
-	la a0, acertos			# imprime a quantidade de acertos (recorde)
-	li a7, 4
-	ecall
-	
-	addi a0, s0, 0
-	li a7, 1
-	ecall
-	
-	la a0, new_line
-	li a7, 4
-	ecall
-	
-	la a0, afundados		# imprime a quantidade de afundados (recorde)
-	li a7, 4
-	ecall
-	
-	addi a0, t1, 0
-	li a7, 1
-	ecall
-	
-	la a0, new_line
-	li a7, 4
-	ecall
-	
-	la a0, new_line
-	li a7, 4
-	ecall
-	
-	la a0, voce
-	li a7, 4
-	ecall
-	
-	la a0, tiros
-	li a7, 4
-	ecall
-	
-	addi a0, s1, 0			# imprime a quantidade de tiros (voce)
-	li a7, 1
-	ecall
-	
-	la a0, new_line
-	li a7, 4
-	ecall
-	
-	la a0, acertos			# imprime a quantidade de acertos (voce)
-	li a7, 4
-	ecall
-	
-	addi a0, s10, 0
-	li a7, 1
-	ecall
-	
-	la a0, new_line
-	li a7, 4
-	ecall
+	la s0, recorde_placar
 	
 	la a0, afundados
 	li a7, 4
 	ecall
 	
-	la s2, voce_placar		# imprime a quantidade de afundados (voce)
-	lw a0, 0(s2)
-	li a7, 1
+	lw s1, 0(s0)
+	addi a0, s1, 0
+	li a7, 1		# imprime a quantidade de afundados (recorde)
 	ecall
+	
+	la a0, new_line
+	li a7, 4
+	ecall
+	
+	la a0, tiros
+	li a7, 4
+	ecall
+	
+	addi s0, s0, 4
+	lw s1, 0(s0)
+	addi a0, s1, 0
+	li a7, 1		# imprime a quantidade de tiros (recorde)
+	ecall
+	
+	la a0, new_line
+	li a7, 4
+	ecall
+	
+	la a0, acertos
+	li a7, 4
+	ecall
+
+	addi a0, s1, 0
+	li a7, 1		# imprime a quantidade de acertos (recorde)
+	ecall	
+	
+	la a0, new_line
+	li a7, 4
+	ecall
+	
+	la a0, new_line
+	li a7, 4
+	ecall
+placar_voce:
+	la a0, voce
+	li a7, 4
+	ecall
+	
+	la s0, voce_placar
+	
+	la a0, afundados
+	li a7, 4
+	ecall
+	
+	lw s1, 0(s0)
+	addi a0, s1, 0
+	li a7, 1		# imprime a quantidade de afundados (voce)
+	ecall
+	
+	la a0, new_line
+	li a7, 4
+	ecall
+	
+	la a0, tiros
+	li a7, 4
+	ecall
+	
+	addi s0, s0, 4
+	lw s1, 0(s0)
+	addi a0, s1, 0
+	li a7, 1		# imprime a quantidade de tiros (voce)
+	ecall
+	
+	la a0, new_line
+	li a7, 4
+	ecall
+	
+	la a0, acertos
+	li a7, 4
+	ecall
+
+	addi s0, s0, 4
+	lw s1, 0(s0)
+	addi a0, s1, 0
+	li a7, 1		# imprime a quantidade de acertos (voce)
+	ecall	
 	
 	la a0, new_line
 	li a7, 4
@@ -821,7 +846,45 @@ placar:
 	
 	jr s9
 	
+#########################################################
+# configura_placar
+# argumentos: s0 -> placar
+#	      s1 -> opcao
+# retorno: a2 = 1 (terminou) ou a2 = 0 (não terminou)
+# comentário: retora 1 em a2, se afundou um navio, ou 0 se não afundou nenhum, posicao onde afundou fica com -2
+#########################################################
+configura_placar:
+	beq s1, zero, aumenta_afundados
 	
+	addi s10, zero, 1
+	
+	beq s10, s1, aumenta_tiros
+	
+	addi s10, zero, 2
+	
+	beq s10, s1, aumenta_acertos
+aumenta_afundados:
+	lw s1, 0(s0) 
+	addi s1, s1, 1
+	sw s1, 0(s0)		# afundados + 1
+	
+	jr s9
+	
+aumenta_tiros:
+	addi s0, s0, 4
+	lw s1, 0(s0) 
+	addi s1, s1, 1
+	sw s1, 0(s0)		# tiros + 1
+	
+	jr s9
+	
+aumenta_acertos:
+	addi s0, s0, 8
+	lw s1, 0(s0) 
+	addi s1, s1, 1
+	sw s1, 0(s0)		# acertos + 1
+	
+	jr s9
 
 #########################################################
 # reset
