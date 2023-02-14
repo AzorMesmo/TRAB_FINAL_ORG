@@ -1,12 +1,10 @@
 # Mateus Azor - 2011100013
 # Natalia Banhara - 2011100004
 
-# INFO
 # matriz_navios: [numero de navios]\n[0 - horizontal / 1 - vertical] [comprimento do navio] [linha inicial] [coluna inicial]\n ...
+# navios originais: "3\n1 5 1 1\n0 8 2 2\n0 2 6 4"
 
 	.data
-
-navios:				.asciz	"3\n1 5 1 1\n0 8 2 2\n0 2 6 4"
 
 navios0:			.asciz	"3\n1 3 1 3\n0 9 4 1\n1 5 5 5"
 
@@ -18,9 +16,9 @@ navios3:			.asciz	"2\n0 1 3 9\n0 1 6 2"
 
 navios4:			.asciz	"5\n0 1 3 3\n0 1 3 6\n0 1 5 2\n0 1 5 7\n0 4 6 3"
 
-matriz_navios: 			.space 	400			# 10 x 10 x 4 (integer size)
+matriz_navios: 			.space 	400	# 10 x 10 x 4 (integer size)
 
-matriz_jogo:    		.space  400			# 10 x 10 x 4 (integer size)
+matriz_jogo:    		.space  400	# 10 x 10 x 4 (integer size)
 
 voce_placar:    		.word  0, 0, 0
 # primeiro = afundados
@@ -61,7 +59,7 @@ error_message_partida: 		.string "Posicao Invalida, Tente Novamente\n"
 
 error_message_partida_repetida: .string  "Invalido Novamente, Tente Outra Posicao\n"
 
-opcoes:				.string "1 - Reiniciar o jogo\n2 - Mostrar a matriz atual\n3 - Fazer uma nova jogada\n4 - Sair\n\n"
+opcoes:				.string "1 - Reiniciar o jogo\n2 - Mostrar a matriz atual\n3 - Fazer uma nova jogada\n0 - Sair\n\n"
 
 opcao_invalida: 		.string "\nOpcao Invalida!\n"
 
@@ -79,233 +77,232 @@ selecionados:			.string "\nConjunto De Navios Selecionado!\n"
 
 main:
 	
-	la a0, bem_vindo			# carrega a string {bem_vindo} em a0
-	li a7, 4				# carrega o imediato 4 (print string) em a7
-	ecall					# faz a chamada de sistema
+	la a0, bem_vindo				# carrega a string {bem_vindo} em a0
+	li a7, 4					# carrega o imediato 4 (print string) em a7
+	ecall						# faz a chamada de sistema
 	
 main_loop:
 
-	la a0, acoes_menu			# carrega a string {acoes_menu} em a0
-	li a7, 4				# carrega o imediato 4 (print string) em a7
-	ecall					# faz a chamada de sistema
-	li a7, 5				# carrega o imediato 5 (read int) em a7
-	ecall					# faz a chamada de sistema
+	la a0, acoes_menu				# carrega a string {acoes_menu} em a0
+	li a7, 4					# carrega o imediato 4 (print string) em a7
+	ecall						# faz a chamada de sistema
+	li a7, 5					# carrega o imediato 5 (read int) em a7
+	ecall						# faz a chamada de sistema
 	
-	addi a1, zero, 1			# adicona 1 em a0
-	beq a0, a1, main_play			# desvia caso a0 (input do usuario) seja 1 (jogar)
+	addi a1, zero, 1				# adicona 1 em a0
+	beq a0, a1, main_play				# desvia caso a0 (input do usuario) seja 1 (jogar)
 	
-	addi a1, zero, 2			# adicona 2 em a0
-	beq a0, a1, main_choose			# desvia caso a0 (input do usuario) 2 (escolher navios)
-	
-	beq a0, zero, main_end			# desvia caso a0 (input do usuario) seja 0 (sair)
+	addi a1, zero, 2				# adicona 2 em a0
+	beq a0, a1, main_choose				# desvia caso a0 (input do usuario) 2 (escolher navios)
+		
+	beq a0, zero, main_end				# desvia caso a0 (input do usuario) seja 0 (sair)
 
 main_invalida:
 			
-	la a0, opcao_invalida			# carrega a string opcao_invalida em a0
-	li a7, 4				# carrega o imediato 4 (print string) em a7
-	ecall					# faz a chamada de sistema
+	la a0, opcao_invalida				# carrega a string opcao_invalida em a0
+	li a7, 4					# carrega o imediato 4 (print string) em a7
+	ecall						# faz a chamada de sistema
 	
-	j main_loop
-	
-main_play:
-
-	addi s4, zero, 0			# s4 -> o numero que cada navio vai ter na matriz
-	
-	jal reset				# chama a funcao reset
-	
-	jal insere_embarcacoes			# chama a funcao insere_embarcacoes
-
-	call partida				# chama a funcao partida
+	j main_loop					# desvia para main_loop
 	
 main_choose:
 
-	la a0, embarcacoes			# carrega a string {embarcacoes} em a0
-	li a7, 4				# carrega o imediato 4 (print string) em a7
-	ecall					# faz a chamada de sistema
-	li a7, 5				# carrega o imediato 5 (read int) em a7
-	ecall					# faz a chamada de sistema
+	la a0, embarcacoes				# carrega a string {embarcacoes} em a0
+	li a7, 4					# carrega o imediato 4 (print string) em a7
+	ecall						# faz a chamada de sistema
+	li a7, 5					# carrega o imediato 5 (read int) em a7
+	ecall						# faz a chamada de sistema
+		
+	addi a1, zero, 1				# adicona 1 em a0
+	beq a0, a1, ships0				# desvia caso a0 (input do usuario) seja 1
 	
-	addi a1, zero, 1			# adicona 1 em a0
-	beq a0, a1, ships0			# desvia caso a0 (input do usuario) seja 1
+	addi a1, zero, 2				# adicona 2 em a0
+	beq a0, a1, ships1				# desvia caso a0 (input do usuario) seja 2
 	
-	addi a1, zero, 2			# adicona 2 em a0
-	beq a0, a1, ships1			# desvia caso a0 (input do usuario) seja 2
+	addi a1, zero, 3				# adicona 3 em a0
+	beq a0, a1, ships2				# desvia caso a0 (input do usuario) seja 3
 	
-	addi a1, zero, 3			# adicona 3 em a0
-	beq a0, a1, ships2			# desvia caso a0 (input do usuario) seja 3
+	addi a1, zero, 4				# adicona 4 em a0
+	beq a0, a1, ships3				# desvia caso a0 (input do usuario) seja 4
 	
-	addi a1, zero, 4			# adicona 4 em a0
-	beq a0, a1, ships3			# desvia caso a0 (input do usuario) seja 4
-	
-	beq a0, zero, ships4			# desvia caso a0 (input do usuario) seja 0
-	
-	la a0, opcao_invalida			# carrega a string {acoes_menu} em a0
-	li a7, 4				# carrega o imediato 4 (print string) em a7
-	ecall					# faz a chamada de sistema
-	
-	j main_choose
+	beq a0, zero, ships4				# desvia caso a0 (input do usuario) seja 0
+		
+	la a0, opcao_invalida				# carrega a string {acoes_menu} em a0
+	li a7, 4					# carrega o imediato 4 (print string) em a7
+	ecall						# faz a chamada de sistema
+		
+	j main_choose					# desvia para main_choose
 
 ships0:
 
-	la a0, selecionados			# carrega a string selecionados em a0
-	li a7, 4				# carrega o imediato 4 (print string) em a7
-	ecall					# faz a chamada de sistema
+	la a0, selecionados				# carrega a string selecionados em a0
+	li a7, 4					# carrega o imediato 4 (print string) em a7
+	ecall						# faz a chamada de sistema
 
-	addi t1, zero, 0			# adiciona 0 em t1 (valor do conjunto de navios escolhido)
-	la t0, navios_escolhidos		# carrega o endereço de navios_escolhidos em t0
-	sw t1, 0(t0) 				# salva t1 no endereço de t0 (conjunto de navios escolhido)
+	addi t1, zero, 0				# adiciona 0 em t1 (valor do conjunto de navios escolhido)
+	la t0, navios_escolhidos			# carrega o endereço de navios_escolhidos em t0
+	sw t1, 0(t0) 					# salva t1 no endereço de t0 (conjunto de navios escolhido)
 
-	j main_loop				# desvia para main_loop
+	j main_loop					# desvia para main_loop
 
 ships1:
 
-	la a0, selecionados			# carrega a string selecionados em a0
-	li a7, 4				# carrega o imediato 4 (print string) em a7
-	ecall					# faz a chamada de sistema
+	la a0, selecionados				# carrega a string selecionados em a0
+	li a7, 4					# carrega o imediato 4 (print string) em a7
+	ecall						# faz a chamada de sistema
 	
-	addi t1, zero, 1			# adiciona 1 em t1 (valor do conjunto de navios escolhido)
-	la t0, navios_escolhidos		# carrega o endereço de navios_escolhidos em t0
-	sw t1, 0(t0) 				# salva t1 no endereço de t0 (conjunto de navios escolhido)
+	addi t1, zero, 1				# adiciona 1 em t1 (valor do conjunto de navios escolhido)
+	la t0, navios_escolhidos			# carrega o endereço de navios_escolhidos em t0
+	sw t1, 0(t0) 					# salva t1 no endereço de t0 (conjunto de navios escolhido)
 
-	j main_loop				# desvia para main_loop
+	j main_loop					# desvia para main_loop
 
 ships2:
 
-	la a0, selecionados			# carrega a string selecionados em a0
-	li a7, 4				# carrega o imediato 4 (print string) em a7
-	ecall					# faz a chamada de sistema
+	la a0, selecionados				# carrega a string selecionados em a0
+	li a7, 4					# carrega o imediato 4 (print string) em a7
+	ecall						# faz a chamada de sistema
 	
-	addi t1, zero, 2			# adiciona 2 em t1 (valor do conjunto de navios escolhido)
-	la t0, navios_escolhidos		# carrega o endereço de navios_escolhidos em t0
-	sw t1, 0(t0) 				# salva t1 no endereço de t0 (conjunto de navios escolhido)
+	addi t1, zero, 2				# adiciona 2 em t1 (valor do conjunto de navios escolhido)
+	la t0, navios_escolhidos			# carrega o endereço de navios_escolhidos em t0
+	sw t1, 0(t0) 					# salva t1 no endereço de t0 (conjunto de navios escolhido)
 
-	j main_loop				# desvia para main_loop
+	j main_loop					# desvia para main_loop
 
 ships3:
 
-	la a0, selecionados			# carrega a string selecionados em a0
-	li a7, 4				# carrega o imediato 4 (print string) em a7
-	ecall					# faz a chamada de sistema
-	
-	addi t1, zero, 3			# adiciona 3 em t1 (valor do conjunto de navios escolhido)
-	la t0, navios_escolhidos		# carrega o endereço de navios_escolhidos em t0
-	sw t1, 0(t0) 				# salva t1 no endereço de t0 (conjunto de navios escolhido)
+	la a0, selecionados				# carrega a string selecionados em a0
+	li a7, 4					# carrega o imediato 4 (print string) em a7
+	ecall						# faz a chamada de sistema
+		
+	addi t1, zero, 3				# adiciona 3 em t1 (valor do conjunto de navios escolhido)
+	la t0, navios_escolhidos			# carrega o endereço de navios_escolhidos em t0
+	sw t1, 0(t0) 					# salva t1 no endereço de t0 (conjunto de navios escolhido)
 
-	j main_loop				# desvia para main_loop
+	j main_loop					# desvia para main_loop
 
 ships4:
 
-	la a0, selecionados			# carrega a string selecionados em a0
-	li a7, 4				# carrega o imediato 4 (print string) em a7
-	ecall					# faz a chamada de sistema
+	la a0, selecionados				# carrega a string selecionados em a0
+	li a7, 4					# carrega o imediato 4 (print string) em a7
+	ecall						# faz a chamada de sistema
 	
-	addi t1, zero, 4			# adiciona 4 em t1 (valor do conjunto de navios escolhido)
-	la t0, navios_escolhidos		# carrega o endereço de navios_escolhidos em t0
-	sw t1, 0(t0) 				# salva t1 no endereço de t0 (conjunto de navios escolhido)
+	addi t1, zero, 4				# adiciona 4 em t1 (valor do conjunto de navios escolhido)
+	la t0, navios_escolhidos			# carrega o endereço de navios_escolhidos em t0
+	sw t1, 0(t0) 					# salva t1 no endereço de t0 (conjunto de navios escolhido)
 
-	j main_loop				# desvia para main_loop
+	j main_loop					# desvia para main_loop
+
+main_play:
+
+	addi s4, zero, 0				# s4 -> o numero que cada navio vai ter na matriz
+	
+	jal reset					# chama a funcao reset
+	
+	jal insere_embarcacoes				# chama a funcao insere_embarcacoes
+
+	call partida					# chama a funcao partida
 
 main_end:	
 
-	li   a7, 10				# carrega o imediato 10 (print string) em a7 (registrador de system calls)
-	ecall					# faz a chamada de sistema
+	li   a7, 10					# carrega o imediato 10 (print string) em a7 (registrador de system calls)
+	ecall						# faz a chamada de sistema
 
-#########################################################
-#insere_embarcacoes
-# argumentos: a0 - endereco inicial da string navios
-#             a1 - endereco inicial da matriz de navios (matriz_navios)
-# retorno: a1 - matriz preenchida com os navios
-# comentario: a funcao le os navios a serem inseridos, checando caso sejam validos e os inserindo na matrix
-#
-#########################################################
+ #########################################################
+ # funcao: insere_embarcacoes				 #
+ # argumentos: a0 - endereco inicial da string navios	 #
+ #             a1 - endereco inicial da matriz de navios #
+ # retorno: a1 - matriz preenchida com os navios	 #
+ # comentario: a funcao le os navios a serem inseridos,	 #
+ # checando caso sejam validos e os inserindo na matriz	 #
+ #########################################################
+
 insere_embarcacoes:
 
-	lb t1, 0(a0)				# t1 -> contador de barcos (em ascii)
-	addi t1, t1, -48			# subtrai 48 do valor de t1 (convertendo o numero em string para inteiro)
+	lb t1, 0(a0)					# carrega a0 em t1 (contador de barcos)
+	addi t1, t1, -48				# subtrai 48 do valor de t1 (convertendo o numero em string para inteiro)
 	
-	la s0, recorde_placar			# afundados (recorde) = quantidade de barcos
-	sw t1, 0(s0)				# armazena o recorde em t1
+	la s0, recorde_placar				# armazena o endereço de recorde_placar em s0
+	sw t1, 0(s0)					# armazena o recorde de s0 em t1
 	
 loop_insere_embarcacoes:
 
-	ble t1, zero, fim_insere_embarcacoes	# desvia se ja leu todos os navios
+	ble t1, zero, fim_insere_embarcacoes		# desvia se ja leu todos os navios
 	
 insere_um_navio:
 
-	jal s9, le_navios
+	jal s9, le_navio				# chama funcao le_navio e guarda em s9 o endereco de retorno
 	
-	addi s11, zero, 0 			# s11 recebe 0 para identificar que se trata da primeira opcao, ou seja
-						# ainda estamos checando todos os valores (quando for 1, quer dizer que
-						# estamos jogando e checando linha e coluna
+	addi s11, zero, 0 				# s11 recebe 0 para identificar que ainda estamos checando todos os valores
+							# (quando for 1, quer dizer que estamos jogando e checando linha e coluna)
 	
-	jal s9, checa_valores			# chama funcao de checagem da validade dos navios e guarda em s9 o endereco de retorno
+	jal s9, checa_valores				# chama funcao checa_valores e guarda em s9 o endereco de retorno
 	
-	beq a2, zero, fim_insere_embarcacoes_erro  # desvia para fim_insere_embarcacoes_erro caso um erro seja detectado no navio
+	beq a2, zero, fim_insere_embarcacoes_erro  	# desvia para fim_insere_embarcacoes_erro caso um erro seja detectado no navio
 	
-	la a1, matriz_navios			# a1 -> endereco inicial da matriz
+	la a1, matriz_navios				# a1 -> endereco inicial da matriz
 	
-	jal s9, coloca_valores			# chama funcao coloca_valores e guarda em s9 o endereco de retorno
+	jal s9, coloca_valores				# chama funcao coloca_valores e guarda em s9 o endereco de retorno
 	
-	addi t1, t1, -1				# decrementa t1 em 1
+	addi t1, t1, -1					# decrementa t1 em 1
 	
-	j loop_insere_embarcacoes
+	j loop_insere_embarcacoes			# desvia para loop_insere_embarcacoes
 	
 fim_insere_embarcacoes:
 
-	ret
+	ret						# retorna
 	
-fim_insere_embarcacoes_erro:		# imprime mensagem de erro caso um dos navios nao seja valido e retorna
+fim_insere_embarcacoes_erro:
 
-	la a0, error_message
-	li a7, 4
-	ecall
-	ret
+	la a0, error_message				# carrega a string error_message em a0
+	li a7, 4					# carrega o imediato 4 (print string) em a7
+	ecall						# faz a chamada de sistema
 	
-#########################################################
-# partida
-# argumentos: a2 -> matriz_jogo
-#	      a1 -> matriz_navios
-#	      a0 -> navios
-# retorno:(nenhum retorno)
-# comentário: apresenta toda a partida (main da partida)
-#########################################################
+	ret						# retorna
+	
+ ########################################
+ # funcao: partida			#
+ # argumentos: a2 -> matriz_jogo	#
+ #	      a1 -> matriz_navios	#
+ #	      a0 -> navios		#
+ # retorno: nenhum			#
+ # comentário: apresenta toda a partida #
+ ########################################
+
 partida:
 
-	j loop_partida
+	j loop_partida				# desvia para loop_partida
 	
 partida_menu:
 
-	la a1, matriz_jogo
+	la a1, matriz_jogo			# carrega o endereço de matriz_jogo em a1
 	
 	jal s9, imprime_matriz_navios		# imprime matriz do jogo
 	
 	jal s9, placar				# imprime o placar do jogo
 	
-	la a0, opcoes				# imprime opcoes: "1 - Reiniciar o jogo
-	                                        #\n2 - Mostrar a matriz atual\n3 - Fazer uma nova jogada\n4 - Sair\n"
-	li a7, 4
-	ecall
+	la a0, opcoes				# carrega opcoes em a0
+	li a7, 4				# carrega o imediato 4 (print string) em a7
+	ecall					# faz a chamada de sistema
+	li a7, 5				# carrega o imediato 5 (read int) em a7
+	ecall					# faz a chamada de sistema
 	
-	li a7, 5
-	ecall
-	
-	addi a1, zero, 1
+	addi a1, zero, 1			# a1 -> 1
 	beq a0, a1, partida_reiniciar		# caso opcao = 1 -> reiniciar jogo
 	
-	addi a1, zero, 2
+	addi a1, zero, 2			# a1 -> 2
 	beq a0, a1, partida_mostrar_matriz	# caso opcao = 2 -> mostrar matriz de navios
 	
-	addi a1, zero, 3
+	addi a1, zero, 3			# a1 -> 3
 	beq a0, a1, partida			# caso opcao = 3 -> continuar a partida
 	
-	addi a1, zero, 4
-	beq a0, a1, partida_fim			# caso opcao = 4 -> sair
+	beq a0, zero, partida_fim		# caso opcao = 0 -> sair
 	
 	la a0, opcao_invalida			# caso opcao diferente de 1, 2, 3 e 4, imprime opcao errada e pede de novo
-	li a7, 4
-	ecall
+	li a7, 4				# carrega o imediato 4 (print string) em a7
+	ecall					# faz a chamada de sistema
 	
-	j partida_menu
+	j partida_menu				# desvia para partida_menu
 	
 partida_reiniciar:
 
@@ -315,47 +312,46 @@ partida_reiniciar:
 
 partida_reiniciar_placar:
 
-	la s0, voce_placar
+	la s0, voce_placar			# carrega o endereço de voce_placar em s0
 	sw zero, 0(s0)				# afundados (voce) = 0
 
-	addi s0, s0, 4
+	addi s0, s0, 4				# vai para o proximo valor de s0
 	sw zero, 0(s0)				# tiros (voce) = 0
 	
-	addi s0, s0, 4
+	addi s0, s0, 4				# vai para o proximo valor de s0
 	sw zero, 0(s0)				# acertos (voce) = 0
 
-	j partida
+	j partida				# desvia para partida
 
 partida_mostrar_matriz:
 
 	la a1, matriz_navios			# a1 -> matriz dos navios
 	jal s9, imprime_matriz_navios		# imprime a matriz dos navios
 	
-	j partida_menu
+	j partida_menu				# desvia para partida_menu
 	
 loop_partida:
+
 	# Linha = t4
 	# Coluna = t5
 
 	la a0, linha				# imprime string com "Linha: "
-	li a7, 4
-	ecall
-	
-	li a7, 5				# pede a linha
-	ecall
+	li a7, 4				# carrega o imediato 4 (print string) em a7
+	ecall					# faz a chamada de sistema
+	li a7, 5				# carrega o imediato 5 (read int) em a7
+	ecall					# faz a chamada de sistema
 	
 	addi t4, a0, 0				# guarda o valor da linha em t4
 	
 	la a0, coluna 				# imprime string com "Coluna: "
-	li a7, 4
-	ecall
-	
-	li a7, 5				# pede a coluna
-	ecall
+	li a7, 4				# carrega o imediato 4 (print string) em a7
+	ecall					# faz a chamada de sistema
+	li a7, 5				# carrega o imediato 5 (read int) em a7
+	ecall					# faz a chamada de sistema
 	
 	addi t5, a0, 0				# guarda o valor da coluna em t5
 	
-	jal s9, partida_placar_l_c
+	jal s9, partida_placar_l_c		# desvia para partida_placar_l_c guardando o r.a. em s9
 	
 loop_partida_checa_valores:
 
@@ -378,19 +374,72 @@ loop_partida_checa_afundou:
 	
 loop_partida_fim:
 
-	la a0, navios
+	la a0, navios_escolhidos		# carrega o endereço de navios escolhidos em a0
+	lw t1, 0(a0)				# carrega o valor de a0 em t1
 	
+	addi a0, zero, 0			# a0 -> 0
+	beq t1, a0, lpf0			# desvia se t1 = a0
+	
+	addi a0, zero, 1			# a0 -> 1
+	beq t1, a0, lpf1			# desvia se t1 = a0
+	
+	addi a0, zero, 2			# a0 -> 2
+	beq t1, a0, lpf2			# desvia se t1 = a0
+	
+	addi a0, zero, 3			# a0 -> 3
+	beq t1, a0, lpf3			# desvia se t1 = a0
+	
+	addi a0, zero, 4			# a0 -> 4
+	beq t1, a0, lpf4			# desvia se t1 = a0
+
+lpf0:
+
+	la a0, navios0				# carrega o endereco de navios0 em a0
 	lb t1, 0(a0)			        # t1 -> contador de barcos (em ascii)
 	addi t1, t1, -48			# subtrai 48 do valor de t1 (convertendo o numero em string para inteiro)
 	
+	j loop_fim_continua			# desvia para loop_fim_continua
+	
+lpf1:
+
+	la a0, navios1				# carrega o endereco de navios1 em a0
+	lb t1, 0(a0)			        # t1 -> contador de barcos (em ascii)
+	addi t1, t1, -48			# subtrai 48 do valor de t1 (convertendo o numero em string para inteiro)
+	
+	j loop_fim_continua			# desvia para loop_fim_continua
+	
+lpf2:
+
+	la a0, navios2				# carrega o endereco de navios2 em a0
+	lb t1, 0(a0)			        # t1 -> contador de barcos (em ascii)
+	addi t1, t1, -48			# subtrai 48 do valor de t1 (convertendo o numero em string para inteiro)
+	
+	j loop_fim_continua			# desvia para loop_fim_continua
+	
+lpf3:
+
+	la a0, navios3				# carrega o endereco de navios3 em a0
+	lb t1, 0(a0)			        # t1 -> contador de barcos (em ascii)
+	addi t1, t1, -48			# subtrai 48 do valor de t1 (convertendo o numero em string para inteiro)
+	
+	j loop_fim_continua			# desvia para loop_fim_continua
+	
+lpf4:
+
+	la a0, navios4				# carrega o endereco de navios4 em a0
+	lb t1, 0(a0)			        # t1 -> contador de barcos (em ascii)
+	addi t1, t1, -48			# subtrai 48 do valor de t1 (convertendo o numero em string para inteiro)
+
+loop_fim_continua:
+			
 	la s2, voce_placar
 	lw s2, 0(s2)				# s2 -> numero de navios afundados
 	
 	bne s2, t1, partida_menu		# se ainda não afundou todos os navios, vai para partida_menu
 	
 	la a0, mensagem_venceu			# imprime mensegem que venceu
-	li a7, 4
-	ecall
+	li a7, 4				# carrega o imediato 4 (print string) em a7
+	ecall					# faz a chamada de sistema
 	
 partida_fim:
 
@@ -400,15 +449,15 @@ partida_placar_l_c:
 
 	addi a5, t4, 0				# a5 -> posicao da linha (para o placar)
 	addi a6, t5, 0				# s6 -> posicao da coluna (para o placar)
-	jr s9
+	jr s9					# retrna para o endereço de s9
 	
 partida_mensagem_erro:
 
 	la a0, error_message_partida		# imprime mensagem de partida inválida
-	li a7, 4
-	ecall
+	li a7, 4				# carrega o imediato 4 (print string) em a7
+	ecall					# faz a chamada de sistema
 	
-	j partida_menu
+	j partida_menu				# desvia para partida_menu
 	
 #########################################################
 # partida_coloca_valores
@@ -485,14 +534,66 @@ partida_ja_realizada:
 
 partida_checa_fim:
 
-	la a0, navios
+	la a0, navios_escolhidos		# carrega o endereço de navios escolhidos em a0
+	lw t1, 0(a0)				# carrega o valor de a0 em t1
+	
+	addi a0, zero, 0			# a0 -> 0
+	beq t1, a0, pf0				# desvia se t1 = a0
+	
+	addi a0, zero, 1			# a0 -> 1
+	beq t1, a0, pf1				# desvia se t1 = a0
+	
+	addi a0, zero, 2			# a0 -> 2
+	beq t1, a0, pf2				# desvia se t1 = a0
+	
+	addi a0, zero, 3			# a0 -> 3
+	beq t1, a0, pf3				# desvia se t1 = a0
+	
+	addi a0, zero, 4			# a0 -> 4
+	beq t1, a0, pf4				# desvia se t1 = a0
+	
+pf0:
+
+	la a0, navios0				# carrega o endereço de navios0 em a0
+	lb t1, 0(a0)				# t1 -> contador de barcos (em ascii)
+	addi t1, t1, -48			# subtrai 48 do valor de t1 (convertendo o numero em string para inteiro)
+	
+	j loop_partida_checa_fim		# desvia para loop_partida_checa_fim
+	
+pf1:
+
+	la a0, navios1				# carrega o endereço de navios1 em a0
+	lb t1, 0(a0)				# t1 -> contador de barcos (em ascii)
+	addi t1, t1, -48			# subtrai 48 do valor de t1 (convertendo o numero em string para inteiro)
+	
+	j loop_partida_checa_fim		# desvia para loop_partida_checa_fim
+	
+pf2:
+
+	la a0, navios2				# carrega o endereço de navios2 em a0
+	lb t1, 0(a0)				# t1 -> contador de barcos (em ascii)
+	addi t1, t1, -48			# subtrai 48 do valor de t1 (convertendo o numero em string para inteiro)
+	
+	j loop_partida_checa_fim		# desvia para loop_partida_checa_fim
+	
+pf3:
+
+	la a0, navios3				# carrega o endereço de navios3 em a0
+	lb t1, 0(a0)				# t1 -> contador de barcos (em ascii)
+	addi t1, t1, -48			# subtrai 48 do valor de t1 (convertendo o numero em string para inteiro)
+	
+	j loop_partida_checa_fim		# desvia para loop_partida_checa_fim
+	
+pf4:
+
+	la a0, navios4				# carrega o endereço de navios4 em a0
 	lb t1, 0(a0)				# t1 -> contador de barcos (em ascii)
 	addi t1, t1, -48			# subtrai 48 do valor de t1 (convertendo o numero em string para inteiro)
 	
 loop_partida_checa_fim:
 
 	ble t1, zero, partida_terminou          # desvia se ja leu todos os navios
-	jal s9, le_navios			# le o proximo navio
+	jal s9, le_navio			# le o proximo navio
 	
 loop_navio:
 
@@ -556,19 +657,20 @@ partida_nao_terminou:
 	jr s7
 
 	
-#########################################################
-#le_navios
-# argumentos: a0 - endereço inicial da string navios
-# retorno: 
-# t1 -> contador de barcos
-# t2 -> direcao do barco
-# t3 -> tamanho do barco
-# t4 -> linha inicial do barco
-# t5 -> coluna inicial do barco
-# comentário: a função lê os navios a serem inseridos, checando caso sejam válidos e os inserindo na matrix
-#
-#########################################################
-le_navios:
+ ########################################################
+ # funcao: le_navio					#
+ # argumentos: a0 - endereço inicial da string navios	#
+ # retorno: 						#
+ # t1 -> contador de barcos				#
+ # t2 -> direcao do barco				#
+ # t3 -> tamanho do barco				#
+ # t4 -> linha inicial do barco				#
+ # t5 -> coluna inicial do barco			#			
+ # comentário: a função lê os navios a serem inseridos, #
+ # checando caso sejam válidos e os inserindo na matriz #
+ ########################################################
+
+le_navio:
 
 	addi a0, a0, 2				# a0 -> posicao inicial do barco na string navios
 	lb t2, 0(a0)				# carrega o proximo byte de a0 em t2 (direcao do barco)
@@ -587,20 +689,20 @@ le_navios:
 	addi t4, t4, -48			# subtrai 48 do valor de t4 (convertendo o numero em string para inteiro)
 	addi t5, t5, -48			# subtrai 48 do valor de t5 (convertendo o numero em string para inteiro)
 	
-	jr s9	
+	jr s9					# desvia para o endereco em s9
 
-#########################################################
-# checa_valores
-# argumentos: a1 -> matriz_navios
-# retorno: a2 = 1 (se for válida)
-#	   a2 = 0 (se não for válida)
-# comentário: checa se os valores do barco são válidos
-#
-#########################################################
+ ########################################################
+ # funcao: checa_valores				#
+ # argumentos: a1 -> matriz_navios			#
+ # retorno: a2 = 1 (se for válida)			#
+ #	    a2 = 0 (se não for válida)			#
+ # comentário: checa se os valores do barco são válidos #
+ ########################################################
+
 checa_valores:
 
-	addi s2, zero, 9			# S2 -> 9 (numero maximo que uma linha ou coluna pode ter)
-	addi t6, zero, 1			# t6 -> 1 (opcao vertical)
+	addi s2, zero, 9			# adiciona 9 (numero maximo de cada linha/coluna) em s2
+	addi t6, zero, 1			# adiona 1 (opcao vertical) em t6
 	
 checa_posicao:
 
@@ -610,31 +712,31 @@ checa_posicao:
 	bgt t4, s2, erro_encontrado		# identifica erro se a linha for maior que 9
 	bgt t5, s2, erro_encontrado		# identifica erro se a coluna for maior que 9
 	
-	bne s11, zero, fim_checa_valores
+	bne s11, zero, fim_checa_valores	# desvia para fim_checa_valores se s11 for 0 (nao estamos em jogo)
 	
 checa_primeiro_digito:				# checa o primeiro digito -> deve ser igual a 0 ou 1
 			
 	bgt t2, t6, erro_encontrado		# identifica erro se a posição for maior que 1
-	addi t6, zero, 10			# t6 -> 10 (quantidade de linhas e colunas)
+	addi t6, zero, 10			# adiciona 10 (quantidade de linhas e colunas) em t6
 	blt t2, zero, erro_encontrado		# identifica erro se a posição for menor que 0
 	
 checa_tamanho:
 
-	la s0, recorde_placar
-	addi s0, s0, 4
-	lw s1, 0(s0)
-	add s1, s1, t3
+	la s0, recorde_placar			# carrega o endereço de recorde_placar em s0
+	addi s0, s0, 4				# vai para proxima posicao de s0
+	lw s1, 0(s0)				# carrega em s1 o conteudo de s0
+	add s1, s1, t3				# adiciona o valor de t3 em s1
 	sw s1, 0(s0)				# numero de tiros e acertos do recorde
 	
 	blt t3, zero, erro_encontrado		# identifica erro se o tamanho do barco for menor que 0
-	bgt t3, t6, erro_encontrado			# identifica erro se o tamanho do barco for maior que 10
+	bgt t3, t6, erro_encontrado		# identifica erro se o tamanho do barco for maior que 10
 	
 checa_horizontal:
 
-	bne t2, zero, checa_vertical		# desvia para checks_vertical se o barco for vertical
+	bne t2, zero, checa_vertical		# desvia para checa_vertical se o barco for vertical
 	add t6, t5, t3				# t6 -> tamanho do barco + coluna inicial (para verificar se ultrapassa as dimensoes)
 	
-	j checa_limite
+	j checa_limite				# desvia para checa limite
 	
 checa_vertical:
 
@@ -642,8 +744,8 @@ checa_vertical:
 
 checa_limite:
 
-	addi t6, t6, -1
-	bgt t6, s2, erro_encontrado
+	addi t6, t6, -1				# diminui o valor de t6 em 1
+	bgt t6, s2, erro_encontrado		# desvia para erro_encontrado se t6 for maior que s2
 
 checa_sobreposicao:
 
@@ -657,7 +759,7 @@ checa_sobreposicao:
 	
 loop_checa_sobreposicao:
 
-	bge zero, s6, fim_checa_valores	# desvia para checks_values_ends se já passou por todas posições que o barco ocupará
+	bge zero, s6, fim_checa_valores		# desvia para checks_values_ends se já passou por todas posições que o barco ocupará
 	
 	addi s2, zero, 10			# QTD_colunas
 	
@@ -679,7 +781,7 @@ loop_checa_sobreposicao:
 checa_sobreposicao_horizontal:
 
 	addi s7, s7, 1				# incrementa em 1 o numero de colunas
-	j checa_sobreposicao_decrementa
+	j checa_sobreposicao_decrementa		# desvia para checa_sobreposicao_decrementa
 	
 checa_sobreposicao_vertical:
 
@@ -688,30 +790,30 @@ checa_sobreposicao_vertical:
 checa_sobreposicao_decrementa:
 
 	addi s6, s6, -1				# diminui em 1 o tamanho do barco para continuar a percorrer por ele
-	j loop_checa_sobreposicao	
+	j loop_checa_sobreposicao		# desvia para loop_checa_sobreposicao
 	
 fim_checa_valores:
 
 	addi a2, zero, 1			# a2 = 1 (valida)
 	
-	jr s9
+	jr s9					# desvia para o endereço de s9
 
 erro_encontrado:
 
 	addi a2, zero, 0			# a2 = 0 (invalida)
 	
-	jr s9					# retorna
+	jr s9					# desvia para o endereço de s9
 
-#########################################################
-# coloca_valores
-# argumentos: a1 -> matriz_navios
-# retorno: a1 possui o barco inserido nela
-# comentário: insere um barco na matriz
-#
-#########################################################
+ ############################################
+ # funcao: coloca_valores		    #
+ # argumentos: a1 -> matriz_navios	    #
+ # retorno: a1 possui o barco inserido nela #
+ # comentário: insere um barco na matriz    #
+ ############################################
+
 coloca_valores:
 		
-	addi s4, s4, 1 				# incrementa o numero que representa o navio na matrix
+	addi s4, s4, 1 				# incrementa s4 (numero que representa o navio na matriz) em 1
 	
 loop_coloca_valores:
 
@@ -719,7 +821,7 @@ loop_coloca_valores:
 	
 	addi s2, zero, 10			# QTD_colunas
 	
-	la a1, matriz_navios
+	la a1, matriz_navios			# carrega o endereço de matriz_navios em a1
 
 	mul s3, t4, s2				# L * QTD_colunas
 	addi s5, zero, 4			# s5 -> 4
@@ -735,7 +837,7 @@ loop_coloca_valores:
 coloca_valores_horizontal:
 
 	addi t5, t5, 1				# t5 + 1 -> aumenta coluna inicial
-	j coloca_valores_decrementa			
+	j coloca_valores_decrementa		# desvia para coloca_valores_decrementa
 	
 coloca_valores_vertical:
 
@@ -744,18 +846,19 @@ coloca_valores_vertical:
 coloca_valores_decrementa:
 
 	addi t3, t3, -1				# decrementa o tamanho do barco em 1 para continuar preenchendo na matriz
-	j loop_coloca_valores
+	j loop_coloca_valores			# desvia para loop_coloca_valores
 	
 fim_coloca_valores:
 
-	jr s9
+	jr s9					# desvia para o endereço de s9
 
-#########################################################
-# imprime_matriz_navios
-# argumentos: a1 -> matriz
-# retorno:(nenhum retorno)
-# comentario: imprime a matriz
-#########################################################
+ #################################
+ # funcao: imprime_matriz_navios #
+ # argumentos: a1 -> matriz	 #
+ # retorno:(nenhum retorno)	 #
+ # comentario: imprime a matriz	 #
+ #################################
+
 imprime_matriz_navios:
 
 	la a0, new_line 			# coloca new_line em a0
@@ -785,7 +888,9 @@ p_loop:
 	addi t1, t1, -1 			# decrementa o contador das quebras de linha
 
 	j p_loop 				# desvia para {p_loop}
+
 p_break:
+
 	la a0, new_line 			# coloca new_line em a0
 	li a7, 4 				# coloca o valor 4 em a7 (4 = imprimir string)
 	ecall 					# faz a chamada de sistema (usando sempre o valor que esta em a7)
@@ -793,6 +898,7 @@ p_break:
 	addi t1, zero, 10 			# reinicia o contador em t1 (contador das quebras de linha)
 		
 	j p_loop 				# desvia para {p_loop}
+
 p_end:
 
 	jr s9 					# retorna
@@ -805,9 +911,63 @@ p_end:
 #########################################################
 afunda_navio:
 
-	la s4, navios
-	lb t2, 0(s4)
-	addi t2, t2, -48  # t2 -> barcos totais
+	la s4, navios_escolhidos		# carrega o endereço de navios escolhidos em s4
+	lw t2, 0(s4)				# carrega o valor de s4 em t2
+	
+	addi s4, zero, 0			# s4 -> 0
+	beq t2, s4, an0				# desvia se t2 = s4
+	
+	addi s4, zero, 1			# s4 -> 1
+	beq t2, s4, an1				# desvia se t2 = s4
+	
+	addi s4, zero, 2			# s4 -> 2
+	beq t2, s4, an2				# desvia se t2 = s4
+	
+	addi s4, zero, 3			# s4 -> 3
+	beq t2, s4, an3				# desvia se t2 = s4
+	
+	addi s4, zero, 4			# s4 -> 4
+	beq t2, s4, an4				# desvia se t2 = s4
+	
+an0:
+
+	la s4, navios0				# carrega o endereço de navios0 em s4
+	lb t2, 0(s4)				# carrega o valor de s4 em t2
+	addi t2, t2, -48  			# t2 -> barcos totais
+	
+	j afunda_continuacao			# desvia para afunda_continuacao
+
+an1:
+
+	la s4, navios1				# carrega o endereço de navios1 em s4
+	lb t2, 0(s4)				# carrega o valor de s4 em t2
+	addi t2, t2, -48  			# t2 -> barcos totais
+	
+	j afunda_continuacao			# desvia para afunda_continuacao
+	
+an2:
+
+	la s4, navios2				# carrega o endereço de navios2 em s4
+	lb t2, 0(s4)				# carrega o valor de s4 em t2
+	addi t2, t2, -48  			# t2 -> barcos totais
+	
+	j afunda_continuacao			# desvia para afunda_continuacao
+	
+an3:
+
+	la s4, navios3				# carrega o endereço de navios3 em s4
+	lb t2, 0(s4)				# carrega o valor de s4 em t2
+	addi t2, t2, -48  			# t2 -> barcos totais
+	
+	j afunda_continuacao			# desvia para afunda_continuacao
+	
+an4:
+
+	la s4, navios4				# carrega o endereço de navios4 em s4
+	lb t2, 0(s4)				# carrega o valor de s4 em t2
+	addi t2, t2, -48  			# t2 -> barcos totais
+			
+afunda_continuacao:
 	
 	addi a3, t1, 0   # t1 -> barco atual em ordem contrária
 	addi s3, zero, -1
@@ -890,12 +1050,12 @@ fim_afunda_navio:
 
 	jr s9
 
-#########################################################
-# zera_matriz
-# argumentos: a1 -> matriz
-# retorno: matriz com valores todos = 0
-#
-#########################################################
+ ############################
+ # funcao: zera_matriz	    #
+ # argumentos: a1 -> matriz #
+ # retorno: matriz de 0's   #
+ ############################
+
 zera_matriz:
 
 	addi a4, a1, 0			# coloca o valor de a1 (endereço incial da matriz) em a4
@@ -917,147 +1077,193 @@ zera_end:
 
 	jr s9 				# retorna	
 	
-#########################################################
-# placar
-# retorno:(nenhum retorno)
-# comentário: mostra o placar do jogador e do recorde
-#########################################################
+ #######################################################
+ # funcao: placar				       #
+ # retorno:(nenhum retorno)			       #
+ # comentário: mostra o placar do jogador e do recorde #
+ #######################################################
 
 placar:
 
-	la a0, new_line
-	li a7, 4
-	ecall
+	la a0, new_line 			# coloca new_line em a0
+	li a7, 4 				# coloca o valor 4 em a7 (4 = imprimir string)
+	ecall 					# faz a chamada de sistema (usando sempre o valor que esta em a7)
 	
-	la a0, navios
-	lb t1, 0(a0)			# t1 -> contador de barcos (em ascii)
-	addi t1, t1, -48		# subtrai 48 do valor de t1 (convertendo o numero em string para inteiro)
+	la a0, navios_escolhidos		# carrega o endereço de navios escolhidos em a0
+	lw a7, 0(a0)				# carrega o valor de a0 em a7
+	
+	addi a0, zero, 0			# a0 -> 0
+	beq a7, a0, p0				# desvia se a7 = a0
+	
+	addi a0, zero, 1			# a0 -> 1
+	beq a7, a0, p1				# desvia se a7 = a0
+	
+	addi a0, zero, 2			# a0 -> 2
+	beq a7, a0, p2				# desvia se a7 = a0
+	
+	addi a0, zero, 3			# t0 -> 3
+	beq a7, a0, p3				# desvia se a7 = a0
+	
+	addi a0, zero, 4			# t0 -> 4
+	beq a7, a0, p4				# desvia se a7 = a0
+	
+p0:
+
+	la a0, navios0				# coloca o endereço de navios0 em a0
+	lb t1, 0(a0)				# t1 -> contador de barcos (em ascii)
+	addi t1, t1, -48			# subtrai 48 do valor de t1 (convertendo o numero em string para inteiro)
+	
+	j placar_recorde			# desvia para placar recorde
+	
+p1:
+
+	la a0, navios1				# coloca o endereço de navios1 em a0
+	lb t1, 0(a0)				# t1 -> contador de barcos (em ascii)
+	addi t1, t1, -48			# subtrai 48 do valor de t1 (convertendo o numero em string para inteiro)
+	
+	j placar_recorde			# desvia para placar recorde
+	
+p2:
+
+	la a0, navios2				# coloca o endereço de navios2 em a0
+	lb t1, 0(a0)				# t1 -> contador de barcos (em ascii)
+	addi t1, t1, -48			# subtrai 48 do valor de t1 (convertendo o numero em string para inteiro)
+	
+	j placar_recorde			# desvia para placar recorde
+	
+p3:
+
+	la a0, navios3				# coloca o endereço de navios3 em a0
+	lb t1, 0(a0)				# t1 -> contador de barcos (em ascii)
+	addi t1, t1, -48			# subtrai 48 do valor de t1 (convertendo o numero em string para inteiro)
+	
+	j placar_recorde			# desvia para placar recorde
+	
+p4:
+
+	la a0, navios4				# coloca o endereço de navios4 em a0
+	lb t1, 0(a0)				# t1 -> contador de barcos (em ascii)
+	addi t1, t1, -48			# subtrai 48 do valor de t1 (convertendo o numero em string para inteiro)
 	
 placar_recorde:
 
-	la a0, recorde
-	li a7, 4
-	ecall
+	la a0, recorde				# coloca recorde em a0
+	li a7, 4 				# coloca o valor 4 em a7 (4 = imprimir string)
+	ecall 					# faz a chamada de sistema (usando sempre o valor que esta em a7)
 	
-	la s0, recorde_placar
+	la s0, recorde_placar			# carrega o endereço de recorde_placar em s0
 	
-	la a0, afundados
-	li a7, 4
-	ecall
+	la a0, afundados			# coloca afundados em a0
+	li a7, 4 				# coloca o valor 4 em a7 (4 = imprimir string)
+	ecall 					# faz a chamada de sistema (usando sempre o valor que esta em a7)
 	
-	lw s1, 0(s0)
-	addi a0, s1, 0
-	li a7, 1		# imprime a quantidade de afundados (recorde)
-	ecall
+	lw s1, 0(s0)				# carrega o valor do emdereço de s0 em s1 (quantidade de afundados -> recorde)
+	addi a0, s1, 0				# a0 -> s1
+	li a7, 1				# coloca o valor 1 em a7 (1 = imprimir inteirp)
+	ecall					# faz a chamada de sistema (usando sempre o valor que esta em a7)
 	
-	la a0, new_line
-	li a7, 4
-	ecall
+	la a0, new_line				# coloca new_line em a0
+	li a7, 4 				# coloca o valor 4 em a7 (4 = imprimir string)
+	ecall 					# faz a chamada de sistema (usando sempre o valor que esta em a7)
 	
-	la a0, tiros
-	li a7, 4
-	ecall
+	la a0, tiros				# coloca tiros em a0
+	li a7, 4 				# coloca o valor 4 em a7 (4 = imprimir string)
+	ecall 					# faz a chamada de sistema (usando sempre o valor que esta em a7)
 	
-	addi s0, s0, 4
-	lw s1, 0(s0)
-	addi a0, s1, 0
-	li a7, 1		# imprime a quantidade de tiros (recorde)
-	ecall
+	addi s0, s0, 4				# vai para o proximo valor de s0	
+	lw s1, 0(s0)				# carrega o valor do emdereço de s0 em s1 (qantidade de tiros -> recorde)
+	addi a0, s1, 0				# a0 -> s1
+	li a7, 1				# coloca o valor 1 em a7 (1 = imprimir inteirp)
+	ecall					# faz a chamada de sistema (usando sempre o valor que esta em a7)
 	
-	la a0, new_line
-	li a7, 4
-	ecall
+	la a0, new_line				# coloca new_line em a0
+	li a7, 4 				# coloca o valor 4 em a7 (4 = imprimir string)
+	ecall 					# faz a chamada de sistema (usando sempre o valor que esta em a7)
 	
-	la a0, acertos
-	li a7, 4
-	ecall
+	la a0, acertos				# coloca acertos em a0
+	li a7, 4 				# coloca o valor 4 em a7 (4 = imprimir string)
+	ecall 					# faz a chamada de sistema (usando sempre o valor que esta em a7)
 
-	addi a0, s1, 0
-	li a7, 1		# imprime a quantidade de acertos (recorde)
-	ecall	
+	addi a0, s1, 0				# adiciona o valor de s1 em a0 (quantidade de acertos -> recorde)
+	li a7, 1				# coloca o valor 1 em a7 (1 = imprimir inteirp)
+	ecall					# faz a chamada de sistema (usando sempre o valor que esta em a7)
 	
-	la a0, new_line
-	li a7, 4
-	ecall
-	
-	la a0, new_line
-	li a7, 4
-	ecall
+	la a0, new_line				# coloca new_line em a0
+	li a7, 4 				# coloca o valor 4 em a7 (4 = imprimir string)
+	ecall 					# faz a chamada de sistema (usando sempre o valor que esta em a7)
+	ecall 					# faz a chamada de sistema (usando sempre o valor que esta em a7)
 	
 placar_voce:
 
-	la a0, voce
-	li a7, 4
-	ecall
+	la a0, voce				# coloca voce em a0
+	li a7, 4 				# coloca o valor 4 em a7 (4 = imprimir string)
+	ecall 					# faz a chamada de sistema (usando sempre o valor que esta em a7)
 	
-	la s0, voce_placar
+	la s0, voce_placar			# carrega voce_placar em s0
 	
-	la a0, afundados
-	li a7, 4
-	ecall
+	la a0, afundados			# coloca new_line em a0
+	li a7, 4 				# coloca o valor 4 em a7 (4 = imprimir string)
+	ecall 					# faz a chamada de sistema (usando sempre o valor que esta em a7)
 	
-	lw s1, 0(s0)
-	addi a0, s1, 0
-	li a7, 1		# imprime a quantidade de afundados (voce)
-	ecall
+	lw s1, 0(s0)				# carrega o valor do emdereço de s0 em s1 (quantidade de afundados -> voce)
+	addi a0, s1, 0				# a0 -> s1
+	li a7, 1				# coloca o valor 1 em a7 (1 = imprimir inteirp)
+	ecall					# faz a chamada de sistema (usando sempre o valor que esta em a7)
 	
-	la a0, new_line
-	li a7, 4
-	ecall
+	la a0, new_line				# coloca new_line em a0
+	li a7, 4 				# coloca o valor 4 em a7 (4 = imprimir string)
+	ecall 					# faz a chamada de sistema (usando sempre o valor que esta em a7)
 	
-	la a0, tiros
-	li a7, 4
-	ecall
+	la a0, tiros				# coloca tiros em a0
+	li a7, 4 				# coloca o valor 4 em a7 (4 = imprimir string)
+	ecall 					# faz a chamada de sistema (usando sempre o valor que esta em a7)
 	
-	addi s0, s0, 4
-	lw s1, 0(s0)
-	addi a0, s1, 0
-	li a7, 1		# imprime a quantidade de tiros (voce)
-	ecall
+	addi s0, s0, 4				# vai para o proximo valor de s0	
+	lw s1, 0(s0)				# carrega o valor do emdereço de s0 em s1 (quantidade de tiros -> voce)
+	addi a0, s1, 0				# a0 -> s1
+	li a7, 1				# coloca o valor 1 em a7 (1 = imprimir inteirp)
+	ecall					# faz a chamada de sistema (usando sempre o valor que esta em a7)
 	
-	la a0, new_line
-	li a7, 4
-	ecall
+	la a0, new_line				# coloca new_line em a0
+	li a7, 4 				# coloca o valor 4 em a7 (4 = imprimir string)
+	ecall 					# faz a chamada de sistema (usando sempre o valor que esta em a7)
 	
-	la a0, acertos
-	li a7, 4
-	ecall
+	la a0, acertos				# coloca acertos em a0
+	li a7, 4 				# coloca o valor 4 em a7 (4 = imprimir string)
+	ecall 					# faz a chamada de sistema (usando sempre o valor que esta em a7)
 
-	addi s0, s0, 4
-	lw s1, 0(s0)
-	addi a0, s1, 0
-	li a7, 1		# imprime a quantidade de acertos (voce)
-	ecall	
+	addi s0, s0, 4				# vai para o proximo valor de s0	
+	lw s1, 0(s0)				# carrega o valor do emdereço de s0 em s1 (quantidade de acertos -> voce)
+	addi a0, s1, 0				# a0 -> s1
+	li a7, 1				# coloca o valor 1 em a7 (1 = imprimir inteirp)
+	ecall					# faz a chamada de sistema (usando sempre o valor que esta em a7)
 	
-	la a0, new_line
-	li a7, 4
-	ecall
+	la a0, new_line				# coloca new_line em a0
+	li a7, 4 				# coloca o valor 4 em a7 (4 = imprimir string)
+	ecall 					# faz a chamada de sistema (usando sempre o valor que esta em a7)
 	
-	la a0, ultimo_tiro		# imprime a posicao do ultimo tiro (voce)
-	li a7, 4
-	ecall
+	la a0, ultimo_tiro			# carrega o endereço ultimo_tiro em a0
+	li a7, 4 				# coloca o valor 4 em a7 (4 = imprimir string)
+	ecall 					# faz a chamada de sistema (usando sempre o valor que esta em a7)
 	
-	addi a0, a5, 0
-	li a7, 1
-	ecall
+	addi a0, a5, 0				# a0 -> a5 (linha ultimo tiro)
+	li a7, 1				# coloca o valor 1 em a7 (1 = imprimir inteirp)
+	ecall					# faz a chamada de sistema (usando sempre o valor que esta em a7)
 	
-	la a0, space
-	li a7, 4
-	ecall
+	la a0, space				# coloca space em a0
+	li a7, 4 				# coloca o valor 4 em a7 (4 = imprimir string)
+	ecall 					# faz a chamada de sistema (usando sempre o valor que esta em a7)
 	
-	addi a0, a6, 0
-	li a7, 1
-	ecall
+	addi a0, a6, 0				# a0 -> a6 (coluna ultimo tiro)
+	li a7, 1				# coloca o valor 1 em a7 (1 = imprimir inteirp)
+	ecall					# faz a chamada de sistema (usando sempre o valor que esta em a7)
 	
-	la a0, new_line
-	li a7, 4
-	ecall
+	la a0, new_line				# coloca new_line em a0
+	li a7, 4 				# coloca o valor 4 em a7 (4 = imprimir string)
+	ecall 					# faz a chamada de sistema (usando sempre o valor que esta em a7)
+	ecall 					# faz a chamada de sistema (usando sempre o valor que esta em a7)
 	
-	la a0, new_line
-	li a7, 4
-	ecall
-	
-	jr s9
+	jr s9					# desvia para o endereço de a9
 	
 #########################################################
 # configura_placar
@@ -1105,14 +1311,69 @@ aumenta_acertos:
 	
 	jr s9
 
-#########################################################
-# reset
-# retorno: coloca em a0 a posição inicial da string navios, em a1 a posição inicial da matriz_navios
-# e em a2 a posição inicial da matriz_jogo
-#########################################################
+ ###################################################
+ # funcao: reset				   #
+ # retorno: a0 -> posição inicial da string navios #
+ #	   a1 -> posição inicial da matriz_navios  #
+ # 	   a2 -> posição inicial da matriz_jogo	   #
+ ###################################################
+
 reset:
 
-	la a0, navios				# carrega a string navios em a0
+	la t0, navios_escolhidos		# carrega o endereço de navios escolhidos em t0
+	lw t1, 0(t0)				# carrega o valor de t0 em t1
+	
+	addi t0, zero, 0			# t0 -> 0
+	beq t1, t0, r0				# desvia se t1 = t0
+	
+	addi t0, zero, 1			# t0 -> 1
+	beq t1, t0, r1				# desvia se t1 = t0
+	
+	addi t0, zero, 2			# t0 -> 2
+	beq t1, t0, r2				# desvia se t1 = t0
+	
+	addi t0, zero, 3			# t0 -> 3
+	beq t1, t0, r3				# desvia se t1 = t0
+	
+	addi t0, zero, 4			# t0 -> 4
+	beq t1, t0, r4				# desvia se t1 = t0
+
+r0:
+
+	la a0, navios0				# carrega a string navios0 em a0
 	la a1, matriz_navios			# carrega a matriz_navios em a1
 	la a2, matriz_jogo			# carrega a matriz_jogo em a2
+	
+	ret					# retorna
+	
+r1:
+
+	la a0, navios1				# carrega a string navios1 em a0
+	la a1, matriz_navios			# carrega a matriz_navios em a1
+	la a2, matriz_jogo			# carrega a matriz_jogo em a2
+	
+	ret					# retorna
+	
+r2:
+
+	la a0, navios2				# carrega a string navios2 em a0
+	la a1, matriz_navios			# carrega a matriz_navios em a1
+	la a2, matriz_jogo			# carrega a matriz_jogo em a2
+	
+	ret					# retorna
+	
+r3:
+
+	la a0, navios3				# carrega a string navios3 em a0
+	la a1, matriz_navios			# carrega a matriz_navios em a1
+	la a2, matriz_jogo			# carrega a matriz_jogo em a2
+	
+	ret					# retorna
+	
+r4:
+
+	la a0, navios4				# carrega a string navios4 em a0
+	la a1, matriz_navios			# carrega a matriz_navios em a1
+	la a2, matriz_jogo			# carrega a matriz_jogo em a2
+	
 	ret					# retorna
