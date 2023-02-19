@@ -63,9 +63,9 @@ opcoes:				.string "1 - Reiniciar o jogo\n2 - Mostrar a matriz atual\n3 - Fazer 
 
 opcao_invalida: 		.string "\nOpcao Invalida!\n"
 
-mensagem_venceu: 		.string "Congrats! You Won!!\n"
+mensagem_venceu: 		.string "\n\nCongrats! You Won!!\n\n"
 
-bem_vindo:			.string "Bem Vindo a Batalha Naval em Assembly!\n"
+bem_vindo:			.string "Bem Vindo à Batalha Naval em Assembly!\n"
 
 acoes_menu:			.string "\n1 - Jogar\n2 - Selecionar Navios\n0 - Sair\n\n"
 
@@ -202,6 +202,8 @@ main_play:
 	jal insere_embarcacoes				# chama a funcao insere_embarcacoes
 
 	call partida					# chama a funcao partida
+	
+	j main
 
 main_end:	
 
@@ -265,7 +267,10 @@ fim_insere_embarcacoes_erro:
  # argumentos: a2 -> matriz_jogo	#
  #	      a1 -> matriz_navios	#
  #	      a0 -> navios		#
- # retorno: nenhum			#
+ # retorno: a1 -> 1			#
+ #	(não reiniciar)			#
+ #	    a1 -> 0			#
+ #	(reiniciar)			#
  # comentário: apresenta toda a partida #
  ########################################
 
@@ -284,6 +289,7 @@ partida_menu:
 	la a0, opcoes				# carrega opcoes em a0
 	li a7, 4				# carrega o imediato 4 (print string) em a7
 	ecall					# faz a chamada de sistema
+	
 	li a7, 5				# carrega o imediato 5 (read int) em a7
 	ecall					# faz a chamada de sistema
 	
@@ -303,12 +309,19 @@ partida_menu:
 	ecall					# faz a chamada de sistema
 	
 	j partida_menu				# desvia para partida_menu
-	
+
 partida_reiniciar:
 
 	la a1, matriz_jogo			# coloca a matriz_jogo em a1
 	
 	jal s9, zera_matriz			# coloca todos os valores valendo 0
+	
+	la a1, matriz_navios			# coloca a matriz_navios em a1
+	
+	jal s9 zera_matriz			# coloca todos os valores valendo 0
+	
+	la s0, navios_escolhidos		# carrega o endereço navios_escolhidos em s0
+	sw zero, 0(s0)				# zera o valor
 
 partida_reiniciar_placar:
 
@@ -320,8 +333,14 @@ partida_reiniciar_placar:
 	
 	addi s0, s0, 4				# vai para o proximo valor de s0
 	sw zero, 0(s0)				# acertos (voce) = 0
-
-	j partida				# desvia para partida
+	
+	la s0, recorde_placar			# carrega o endereço de voce_placar em s0
+	sw zero, 0(s0)				# afundados (recorde) = 0
+	
+	addi s0, s0, 4				# vai para o proximo valor de s0
+	sw zero, 0(s0)				# tiros e acertos (recorde) = 0
+	
+	ret
 
 partida_mostrar_matriz:
 
@@ -338,6 +357,7 @@ loop_partida:
 	la a0, linha				# imprime string com "Linha: "
 	li a7, 4				# carrega o imediato 4 (print string) em a7
 	ecall					# faz a chamada de sistema
+	
 	li a7, 5				# carrega o imediato 5 (read int) em a7
 	ecall					# faz a chamada de sistema
 	
@@ -441,9 +461,9 @@ loop_fim_continua:
 	li a7, 4				# carrega o imediato 4 (print string) em a7
 	ecall					# faz a chamada de sistema
 	
+	
 partida_fim:
-
-	ret					# retorna
+	j partida_reiniciar
 	
 partida_placar_l_c:
 
@@ -470,11 +490,11 @@ partida_mensagem_erro:
 #########################################################	
 
 partida_coloca_valores:
+	addi s2, zero, 10			# QTD_colunas
 	
 	la a1, matriz_navios			# carrega a matriz_navios em a1
 	la a2, matriz_jogo			# carrega a matriz_jogo em a2
 
-	addi s2, zero, 10			# QTD_colunas
 	mul s3, t4, s2				# L * QTD_colunas
 	addi s5, zero, 4			# s5 -> 4
 	add s3, s3, t5				# L * QTD_colunas + C
@@ -599,8 +619,8 @@ loop_navio:
 
 	beq zero, t3, partida_terminou		# percorre todas as posicoes do navio ate tamanho ser menor ou igual a 0
 
-	addi s4, zero, 1			# s4 -> 1 (para testar se posicao tem 1)
 	addi s2, zero, 10			# QTD_colunas
+	addi s4, zero, 1			# s4 -> 1 (para testar se posicao tem 1)
 	
 	la a1, matriz_jogo
 
@@ -1088,62 +1108,6 @@ placar:
 	la a0, new_line 			# coloca new_line em a0
 	li a7, 4 				# coloca o valor 4 em a7 (4 = imprimir string)
 	ecall 					# faz a chamada de sistema (usando sempre o valor que esta em a7)
-	
-	la a0, navios_escolhidos		# carrega o endereço de navios escolhidos em a0
-	lw a7, 0(a0)				# carrega o valor de a0 em a7
-	
-	addi a0, zero, 0			# a0 -> 0
-	beq a7, a0, p0				# desvia se a7 = a0
-	
-	addi a0, zero, 1			# a0 -> 1
-	beq a7, a0, p1				# desvia se a7 = a0
-	
-	addi a0, zero, 2			# a0 -> 2
-	beq a7, a0, p2				# desvia se a7 = a0
-	
-	addi a0, zero, 3			# t0 -> 3
-	beq a7, a0, p3				# desvia se a7 = a0
-	
-	addi a0, zero, 4			# t0 -> 4
-	beq a7, a0, p4				# desvia se a7 = a0
-	
-p0:
-
-	la a0, navios0				# coloca o endereço de navios0 em a0
-	lb t1, 0(a0)				# t1 -> contador de barcos (em ascii)
-	addi t1, t1, -48			# subtrai 48 do valor de t1 (convertendo o numero em string para inteiro)
-	
-	j placar_recorde			# desvia para placar recorde
-	
-p1:
-
-	la a0, navios1				# coloca o endereço de navios1 em a0
-	lb t1, 0(a0)				# t1 -> contador de barcos (em ascii)
-	addi t1, t1, -48			# subtrai 48 do valor de t1 (convertendo o numero em string para inteiro)
-	
-	j placar_recorde			# desvia para placar recorde
-	
-p2:
-
-	la a0, navios2				# coloca o endereço de navios2 em a0
-	lb t1, 0(a0)				# t1 -> contador de barcos (em ascii)
-	addi t1, t1, -48			# subtrai 48 do valor de t1 (convertendo o numero em string para inteiro)
-	
-	j placar_recorde			# desvia para placar recorde
-	
-p3:
-
-	la a0, navios3				# coloca o endereço de navios3 em a0
-	lb t1, 0(a0)				# t1 -> contador de barcos (em ascii)
-	addi t1, t1, -48			# subtrai 48 do valor de t1 (convertendo o numero em string para inteiro)
-	
-	j placar_recorde			# desvia para placar recorde
-	
-p4:
-
-	la a0, navios4				# coloca o endereço de navios4 em a0
-	lb t1, 0(a0)				# t1 -> contador de barcos (em ascii)
-	addi t1, t1, -48			# subtrai 48 do valor de t1 (convertendo o numero em string para inteiro)
 	
 placar_recorde:
 
